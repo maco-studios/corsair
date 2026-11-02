@@ -1,0 +1,48 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Copyright (c) 2026 Marcos "Marcão" Aurelio
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ *
+ * @see https://github.com/maco-studios/corsair
+ */
+
+use Corsair\Console\AddCommand;
+use Corsair\Console\InstallCommand;
+use Corsair\Console\PublishCommand;
+use Symfony\Component\Console\Application;
+
+$autoloadCandidates = [
+    dirname(__DIR__) . '/vendor/autoload.php',
+    dirname(__DIR__, 3) . '/autoload.php',
+    dirname(__DIR__, 4) . '/autoload.php',
+];
+
+$autoload = null;
+
+foreach ($autoloadCandidates as $candidate) {
+    if (file_exists($candidate)) {
+        $autoload = $candidate;
+        break;
+    }
+}
+
+if ($autoload === null) {
+    fwrite(STDERR, "Unable to find Composer autoloader.\n");
+    exit(1);
+}
+
+require $autoload;
+
+$application = new Application('Corsair', '0.1.0');
+$application->addCommands([
+    new InstallCommand(),
+    new AddCommand(),
+    new PublishCommand(),
+]);
+$application->run();

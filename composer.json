@@ -33,6 +33,9 @@
             "Tests\\": "tests/"
         }
     },
+    "bin": [
+        "bin/corsair"
+    ],
     "config": {
         "allow-plugins": {
             "ergebnis/composer-normalize": true,
