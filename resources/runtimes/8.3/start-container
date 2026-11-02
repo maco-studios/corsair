@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -e
+
+if [ "$SUPERVISOR_PHP_USER" != "root" ] && [ "$SUPERVISOR_PHP_USER" != "corsair" ]; then
+    echo "You should set SUPERVISOR_PHP_USER to either 'corsair' or 'root'."
+    exit 1
+fi
+
+if [ ! -z "$WWWUSER" ]; then
+    usermod -u "$WWWUSER" corsair
+fi
+
+if [ ! -z "$WWWGROUP" ]; then
+    groupmod -g "$WWWGROUP" corsair
+fi
+
+mkdir -p /var/www/html /sock /var/www/html/var/profile
+chown -R corsair:corsair /var/www /sock
+
+if [ ! -d /.composer ]; then
+    mkdir /.composer
+fi
+chmod -R ugo+rw /.composer
+
+if [ $# -gt 0 ]; then
+    if [ "$SUPERVISOR_PHP_USER" = "root" ]; then
+        exec "$@"
+    else
+        exec gosu "$WWWUSER" "$@"
+    fi
+else
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+fi
