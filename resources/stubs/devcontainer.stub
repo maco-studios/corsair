@@ -1,0 +1,14 @@
+{
+    "name": "Corsair Magento",
+    "dockerComposeFile": ["../compose.yaml"],
+    "service": "magento.test",
+    "workspaceFolder": "/var/www/html",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "xdebug.php-debug",
+                "bmewburn.vscode-intelephense-client"
+            ]
+        }
+    }
+}

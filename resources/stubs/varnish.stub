@@ -1,0 +1,6 @@
+varnish:
+    image: 'varnish:7.5'
+    ports:
+        - '${FORWARD_VARNISH_PORT:-8080}:80'
+    networks:
+        - corsair

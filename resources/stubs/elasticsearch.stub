@@ -1,0 +1,16 @@
+elasticsearch:
+    image: 'docker.elastic.co/elasticsearch/elasticsearch:8.11.4'
+    environment:
+        - discovery.type=single-node
+        - xpack.security.enabled=false
+        - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+    ports:
+        - '${FORWARD_ELASTICSEARCH_PORT:-9200}:9200'
+    volumes:
+        - 'corsair-elasticsearch:/usr/share/elasticsearch/data'
+    networks:
+        - corsair
+    healthcheck:
+        test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
+        retries: 3
+        timeout: 5s

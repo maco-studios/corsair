@@ -1,0 +1,17 @@
+opensearch:
+    image: 'opensearchproject/opensearch:2'
+    environment:
+        - discovery.type=single-node
+        - plugins.security.disabled=true
+        - 'OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m'
+        - DISABLE_INSTALL_DEMO_CONFIG=true
+    ports:
+        - '${FORWARD_OPENSEARCH_PORT:-9200}:9200'
+    volumes:
+        - 'corsair-opensearch:/usr/share/opensearch/data'
+    networks:
+        - corsair
+    healthcheck:
+        test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
+        retries: 3
+        timeout: 5s
