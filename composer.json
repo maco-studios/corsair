@@ -1,0 +1,45 @@
+{
+    "name": "maco-studios/corsair",
+    "description": "Docker files for running a Magento application",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Marcos \"Marcão\" Aurelio",
+            "email": "macosaures@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "ergebnis/composer-normalize": "^2.56",
+        "ergebnis/license": "^2.9",
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "pestphp/pest": "^5.3",
+        "rector/rector": "^2.8"
+    },
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "Corsair\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true,
+            "pestphp/pest-plugin": true
+        }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "@composer normalize"
+        ],
+        "post-update-cmd": [
+            "@composer normalize"
+        ],
+        "test": "pest"
+    }
+}
