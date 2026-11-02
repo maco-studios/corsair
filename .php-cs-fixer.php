@@ -8,8 +8,7 @@ declare(strict_types=1);
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
  *
- * @see https://github.com/maco-studios/vessel
- *
+ * @see https://github.com/maco-studios/corsair
  */
 
 use Ergebnis\License;
@@ -23,7 +22,7 @@ $license = License\Type\MIT::text(
         new DateTimeZone('UTC'),
     ),
     License\Holder::fromString('Marcos "Marcão" Aurelio'),
-    License\Url::fromString('https://github.com/maco-studios/vessel'),
+    License\Url::fromString('https://github.com/maco-studios/corsair'),
 );
 
 $license->save();
