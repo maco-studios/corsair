@@ -50,7 +50,13 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function temporaryProjectPath(string $prefix): string
 {
-    // ..
+    $root = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'tmp';
+
+    if (! is_dir($root)) {
+        mkdir($root, 0755, true);
+    }
+
+    return $root . DIRECTORY_SEPARATOR . $prefix . '-' . bin2hex(random_bytes(4));
 }
