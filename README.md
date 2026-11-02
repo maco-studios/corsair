@@ -6,10 +6,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src=".github/assets/img/badges/license-mit.svg" alt="MIT License"></a>
-  <img src=".github/assets/img/badges/magento-1.svg" alt="Magento 1">
-  <img src=".github/assets/img/badges/magento-2.svg" alt="Magento 2">
-  <img src=".github/assets/img/badges/docker-compose.svg" alt="Docker Compose">
-  <img src=".github/assets/img/badges/pest-5.svg" alt="Pest 5">
+  <img src=".github/assets/img/badges/magento.svg" alt="Magento 1 & 2">
 </p>
 
 <p align="center"><strong>A Docker-powered development environment for Magento 1 and Magento 2.</strong></p>
