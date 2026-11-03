@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     gosu \
     gzip \
     libbz2-dev \
+    libcurl4-openssl-dev \
     libfreetype6-dev \
     libicu-dev \
     libjpeg62-turbo-dev \
@@ -63,6 +64,7 @@ RUN docker-php-ext-configure \
     bcmath \
     bz2 \
     calendar \
+    curl \
     exif \
     ftp \
     gd \
@@ -102,6 +104,8 @@ COPY conf/php-xdebug.ini $PHP_INI_DIR/conf.d/zz-xdebug.ini
 COPY conf/php-fpm.conf /usr/local/etc/php-fpm.conf
 COPY conf/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY conf/nginx.conf /etc/nginx/nginx.conf
+COPY conf/nginx-maho.conf /opt/corsair/nginx-maho.conf
+COPY conf/nginx-openmage.conf /opt/corsair/nginx-openmage.conf
 COPY start-container /usr/local/bin/start-container
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN chmod +x /usr/local/bin/start-container \

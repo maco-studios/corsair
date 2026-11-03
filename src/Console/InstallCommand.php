@@ -28,7 +28,8 @@ class InstallCommand extends Command
         $this
             ->addOption('with', null, InputOption::VALUE_REQUIRED, 'The services that should be included in the installation')
             ->addOption('devcontainer', null, InputOption::VALUE_NONE, 'Create a .devcontainer configuration directory')
-            ->addOption('php', null, InputOption::VALUE_REQUIRED, 'The PHP version that should be used', '8.3');
+            ->addOption('platform', null, InputOption::VALUE_REQUIRED, 'The application platform (magento or maho)')
+            ->addOption('php', null, InputOption::VALUE_REQUIRED, 'The PHP version that should be used');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -36,7 +37,7 @@ class InstallCommand extends Command
         if ($this->option('with')) {
             $services = $this->option('with') === 'none' ? [] : explode(',', (string) $this->option('with'));
         } elseif (! $input->isInteractive()) {
-            $services = $this->defaultServices;
+            $services = $this->defaultServices();
         } else {
             $services = $this->gatherServicesInteractively();
         }
@@ -45,6 +46,30 @@ class InstallCommand extends Command
 
         if ($invalidServices = array_diff($services, $this->services)) {
             $this->error('Invalid services [' . implode(',', $invalidServices) . '].');
+
+            return self::FAILURE;
+        }
+
+        if (! in_array($this->platform(), $this->platforms, true)) {
+            $this->error('Invalid platform [' . $this->platform() . ']. Supported platforms: ' . implode(', ', $this->platforms) . '.');
+
+            return self::FAILURE;
+        }
+
+        if (! in_array($this->phpVersion(), $this->phpVersions, true)) {
+            $this->error('Invalid PHP version [' . $this->phpVersion() . ']. Supported versions: ' . implode(', ', $this->phpVersions) . '.');
+
+            return self::FAILURE;
+        }
+
+        if ($this->platform() === 'maho' && version_compare($this->phpVersion(), '8.3', '<')) {
+            $this->error('Maho requires PHP 8.3 or later. Maho 26.11 requires PHP 8.5 or later.');
+
+            return self::FAILURE;
+        }
+
+        if ($this->platform() === 'openmage' && version_compare($this->phpVersion(), '8.1', '<')) {
+            $this->error('OpenMage requires PHP 8.1 or later.');
 
             return self::FAILURE;
         }
@@ -58,12 +83,25 @@ class InstallCommand extends Command
 
         $this->prepareInstallation($services);
 
+        if ($this->platform() === 'maho' && version_compare($this->phpVersion(), '8.5', '<')) {
+            $this->warn('Maho 26.11 requires PHP 8.5 or later. PHP ' . $this->phpVersion() . ' only runs Maho 26.9.');
+        }
+
         $this->output->writeln('');
         $this->info('Corsair scaffolding installed successfully. You may run your Docker containers using:');
         $this->output->writeln('<fg=gray>➜</> <options=bold>docker compose up -d</>');
 
+        if ($this->platform() === 'maho') {
+            $this->output->writeln('Maho serves the store from <options=bold>public/</>. Install the application once the containers are up:');
+            $this->output->writeln('<fg=gray>➜</> <options=bold>vendor/bin/corsair maho:install</>');
+            $this->output->writeln('Run the Maho CLI with <options=bold>vendor/bin/corsair maho</>.');
+        }
+
         if (in_array('mysql', $services, true) || in_array('mariadb', $services, true)) {
-            $this->warn('A database service was installed. Configure Magento to use the container hostname and credentials from your .env file.');
+            $message = $this->platform() === 'maho'
+                ? 'Database credentials were written to .env. maho:install uses them for ./maho install.'
+                : 'A database service was installed. Configure Magento to use the container hostname and credentials from your .env file.';
+            $this->warn($message);
         }
 
         $this->output->writeln('');
@@ -79,10 +117,17 @@ class InstallCommand extends Command
             mkdir($directory, 0755, true);
         }
 
-        file_put_contents(
-            $directory . DIRECTORY_SEPARATOR . 'devcontainer.json',
-            (string) file_get_contents($this->stubPath('devcontainer.stub')),
-        );
+        $devcontainer = (string) file_get_contents($this->stubPath('devcontainer.stub'));
+
+        if ($this->platform() === 'maho') {
+            $devcontainer = str_replace(
+                ['Corsair Magento', 'magento.test'],
+                ['Corsair Maho', 'maho.test'],
+                $devcontainer,
+            );
+        }
+
+        file_put_contents($directory . DIRECTORY_SEPARATOR . 'devcontainer.json', $devcontainer);
 
         $environment = (string) file_get_contents($this->basePath('.env'));
         $environment = $this->setEnvValue($environment, 'WWWGROUP', '1000');

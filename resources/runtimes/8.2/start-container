@@ -22,6 +22,83 @@ if [ ! -d /.composer ]; then
 fi
 chmod -R ugo+rw /.composer
 
+# Maho serves public/ and needs cron plus the queue worker. The loop no-ops until ./maho exists.
+if [ "${CORSAIR_PLATFORM:-magento}" = "maho" ] && [ "$#" -eq 0 ]; then
+    cp /opt/corsair/nginx-maho.conf /etc/nginx/nginx.conf
+
+    cat > /usr/local/bin/maho-cron <<'EOF'
+#!/usr/bin/env bash
+cd /var/www/html
+while true; do
+    if [ -f ./maho ]; then
+        if [ "${SUPERVISOR_PHP_USER}" = "root" ]; then
+            php ./maho cron:run default || true
+            php ./maho cron:run always || true
+        else
+            gosu "${WWWUSER:-corsair}" php ./maho cron:run default || true
+            gosu "${WWWUSER:-corsair}" php ./maho cron:run always || true
+        fi
+    fi
+    sleep 60
+done
+EOF
+    chmod +x /usr/local/bin/maho-cron
+
+    cat > /etc/supervisor/maho-cron.conf <<'EOF'
+[program:maho-cron]
+command=/usr/local/bin/maho-cron
+user=root
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+EOF
+
+    if ! grep -q '/etc/supervisor/maho-cron.conf' /etc/supervisor/conf.d/supervisord.conf; then
+        printf '\n[include]\nfiles = /etc/supervisor/maho-cron.conf\n' >> /etc/supervisor/conf.d/supervisord.conf
+    fi
+fi
+
+# OpenMage serves the project root and needs cron.php run on a schedule. The loop
+# no-ops until cron.php exists.
+if [ "${CORSAIR_PLATFORM:-magento}" = "openmage" ] && [ "$#" -eq 0 ]; then
+    cp /opt/corsair/nginx-openmage.conf /etc/nginx/nginx.conf
+
+    cat > /usr/local/bin/openmage-cron <<'EOF'
+#!/usr/bin/env bash
+cd /var/www/html
+while true; do
+    if [ -f ./cron.php ]; then
+        if [ "${SUPERVISOR_PHP_USER}" = "root" ]; then
+            php ./cron.php || true
+        else
+            gosu "${WWWUSER:-corsair}" php ./cron.php || true
+        fi
+    fi
+    sleep 60
+done
+EOF
+    chmod +x /usr/local/bin/openmage-cron
+
+    cat > /etc/supervisor/openmage-cron.conf <<'EOF'
+[program:openmage-cron]
+command=/usr/local/bin/openmage-cron
+user=root
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+EOF
+
+    if ! grep -q '/etc/supervisor/openmage-cron.conf' /etc/supervisor/conf.d/supervisord.conf; then
+        printf '\n[include]\nfiles = /etc/supervisor/openmage-cron.conf\n' >> /etc/supervisor/conf.d/supervisord.conf
+    fi
+fi
+
 if [ $# -gt 0 ]; then
     if [ "$SUPERVISOR_PHP_USER" = "root" ]; then
         exec "$@"

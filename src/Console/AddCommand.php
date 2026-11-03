@@ -39,7 +39,7 @@ class AddCommand extends Command
                 ? []
                 : explode(',', (string) $this->argument('services'));
         } elseif (! $input->isInteractive()) {
-            $services = $this->defaultServices;
+            $services = $this->defaultServices();
         } else {
             $services = $this->gatherServicesInteractively();
         }

@@ -1,6 +1,6 @@
 {
     "name": "maco-studios/corsair",
-    "description": "Docker files for running a Magento application",
+    "description": "Docker files for running a Magento or MahoCommerce application",
     "license": "MIT",
     "type": "library",
     "authors": [

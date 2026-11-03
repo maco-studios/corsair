@@ -15,6 +15,7 @@ services:
             WWWUSER: '${WWWUSER:-1000}'
             WWWGROUP: '${WWWGROUP:-1000}'
             CORSAIR: 1
+            CORSAIR_PLATFORM: magento
             XDEBUG_MODE: '${XDEBUG_MODE:-off}'
             XDEBUG_CONFIG: '${XDEBUG_CONFIG:-client_host=host.docker.internal}'
         volumes:

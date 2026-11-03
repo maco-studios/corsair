@@ -47,14 +47,15 @@ it('publishes runtimes and rewrites compose build context', function (): void {
     $status = $tester->execute([]);
 
     expect($status)->toBe(0)
-        ->and(file_exists($this->project.'/docker/8.3/Dockerfile'))->toBeTrue()
-        ->and(file_exists($this->project.'/docker/8.3/conf/php.ini'))->toBeTrue()
-        ->and(file_exists($this->project.'/docker/8.3/conf/nginx.conf'))->toBeTrue()
-        ->and(file_get_contents($this->project.'/docker/8.3/conf/php.ini'))->toContain('memory_limit = 4G')
-        ->and(file_exists($this->project.'/docker/mysql/create-testing-database.sh'))->toBeTrue()
-        ->and(file_exists($this->project.'/docker/mariadb/create-testing-database.sh'))->toBeTrue();
+        ->and(file_exists($this->project . '/docker/8.3/Dockerfile'))->toBeTrue()
+        ->and(file_exists($this->project . '/docker/8.3/conf/php.ini'))->toBeTrue()
+        ->and(file_exists($this->project . '/docker/8.3/conf/nginx.conf'))->toBeTrue()
+        ->and(file_exists($this->project . '/docker/8.3/conf/nginx-maho.conf'))->toBeTrue()
+        ->and(file_get_contents($this->project . '/docker/8.3/conf/php.ini'))->toContain('memory_limit = 4G')
+        ->and(file_exists($this->project . '/docker/mysql/create-testing-database.sh'))->toBeTrue()
+        ->and(file_exists($this->project . '/docker/mariadb/create-testing-database.sh'))->toBeTrue();
 
-    $compose = file_get_contents($this->project.'/compose.yaml');
+    $compose = file_get_contents($this->project . '/compose.yaml');
 
     expect($compose)
         ->toContain('./docker/8.3')

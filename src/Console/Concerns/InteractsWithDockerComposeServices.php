@@ -46,7 +46,24 @@ trait InteractsWithDockerComposeServices
     /**
      * @var list<string>
      */
-    protected array $defaultServices = ['mysql', 'redis', 'opensearch'];
+    protected array $platforms = ['magento', 'maho', 'openmage', 'mageos'];
+
+    /**
+     * @var list<string>
+     */
+    protected array $phpVersions = ['8.0', '8.1', '8.2', '8.3', '8.4', '8.5'];
+
+    protected ?string $resolvedPlatform = null;
+
+    /**
+     * @return list<string>
+     */
+    protected function defaultServices(): array
+    {
+        return in_array($this->platform(), ['maho', 'openmage'], true)
+            ? ['mysql', 'redis']
+            : ['mysql', 'redis', 'opensearch'];
+    }
 
     /**
      * @return list<string>
@@ -56,7 +73,7 @@ trait InteractsWithDockerComposeServices
         $question = new ChoiceQuestion(
             'Which services would you like to install?',
             $this->services,
-            '0',
+            implode(',', $this->defaultServices()),
         );
         $question->setMultiselect(true);
 
@@ -83,14 +100,22 @@ trait InteractsWithDockerComposeServices
 
         $compose['services'] ??= [];
 
-        if (! array_key_exists('magento.test', $compose['services'])) {
-            $this->warn('Couldn\'t find the magento.test service. Make sure you add [' . implode(',', $services) . '] to the depends_on config.');
+        $appService = $this->applicationServiceName();
+
+        if ($appService !== 'magento.test' && array_key_exists('magento.test', $compose['services']) && ! array_key_exists($appService, $compose['services'])) {
+            $compose['services'] = [$appService => $compose['services']['magento.test']] + $compose['services'];
+            unset($compose['services']['magento.test']);
+        }
+
+        if (! array_key_exists($appService, $compose['services'])) {
+            $this->warn('Couldn\'t find the ' . $appService . ' service. Make sure you add [' . implode(',', $services) . '] to the depends_on config.');
         } else {
-            $dependsOn = $compose['services']['magento.test']['depends_on'] ?? [];
-            $compose['services']['magento.test']['depends_on'] = array_values(array_unique(array_merge(
+            $dependsOn = $compose['services'][$appService]['depends_on'] ?? [];
+            $compose['services'][$appService]['depends_on'] = array_values(array_unique(array_merge(
                 is_array($dependsOn) ? $dependsOn : [],
                 $services,
             )));
+            $this->setServiceEnvironment($compose['services'][$appService], 'CORSAIR_PLATFORM', $this->platform());
         }
 
         foreach ($services as $service) {
@@ -123,6 +148,16 @@ trait InteractsWithDockerComposeServices
             unset($compose['volumes']);
         }
 
+        if ($this->platform() === 'maho') {
+            if (isset($compose['services']['redis']) && is_array($compose['services']['redis'])) {
+                $compose['services']['redis']['command'] = 'redis-server --maxmemory-policy volatile-lfu';
+            }
+
+            if (isset($compose['services']['mariadb']) && is_array($compose['services']['mariadb'])) {
+                $compose['services']['mariadb']['image'] = 'mariadb:11.8';
+            }
+        }
+
         $yaml = Yaml::dump(
             $compose,
             10,
@@ -130,8 +165,7 @@ trait InteractsWithDockerComposeServices
             Yaml::DUMP_EMPTY_ARRAY_AS_SEQUENCE | Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK,
         );
 
-        $phpVersion = $this->hasOption('php') ? (string) $this->option('php') : '8.3';
-        $yaml = str_replace('{{PHP_VERSION}}', $phpVersion, $yaml);
+        $yaml = str_replace('{{PHP_VERSION}}', $this->phpVersion(), $yaml);
 
         file_put_contents($composePath, $yaml);
     }
@@ -177,7 +211,13 @@ trait InteractsWithDockerComposeServices
 
         $environment = $this->setEnvValue($environment, 'DB_USERNAME', 'corsair');
         $environment = $this->setEnvValue($environment, 'DB_PASSWORD', 'password');
-        $environment = $this->setEnvValue($environment, 'DB_DATABASE', 'magento');
+        $environment = $this->setEnvValue($environment, 'DB_DATABASE', match ($this->platform()) {
+            'maho' => 'maho',
+            'openmage' => 'openmage',
+            'mageos' => 'mageos',
+            default => 'magento',
+        });
+        $environment = $this->setEnvValue($environment, 'CORSAIR_PLATFORM', $this->platform());
 
         if (in_array('redis', $services, true)) {
             $environment = $this->setEnvValue($environment, 'REDIS_HOST', 'redis');
@@ -286,6 +326,216 @@ ENV;
         return $process->run(function (string $type, string $line): void {
             $this->output->write('    ' . $line);
         });
+    }
+
+    protected function platform(): string
+    {
+        if ($this->hasOption('platform')) {
+            $platform = $this->option('platform');
+
+            if (is_string($platform) && $platform !== '') {
+                return strtolower($platform);
+            }
+        }
+
+        if ($this->resolvedPlatform !== null) {
+            return $this->resolvedPlatform;
+        }
+
+        $composePath = $this->composePath();
+
+        if (file_exists($composePath)) {
+            $compose = Yaml::parseFile($composePath);
+
+            if (is_array($compose)) {
+                $services = $compose['services'] ?? [];
+
+                if (is_array($services)) {
+                    foreach ($services as $service) {
+                        if (! is_array($service)) {
+                            continue;
+                        }
+
+                        $value = $this->environmentValue($service['environment'] ?? null, 'CORSAIR_PLATFORM');
+
+                        if (is_string($value) && $value !== '') {
+                            return $this->resolvedPlatform = strtolower($value);
+                        }
+                    }
+
+                    if (array_key_exists('maho.test', $services)) {
+                        return $this->resolvedPlatform = 'maho';
+                    }
+                }
+            }
+        }
+
+        $platform = $this->platformFromComposerJson() ?? $this->askPlatform();
+
+        return $this->resolvedPlatform = $platform;
+    }
+
+    protected function platformFromComposerJson(): ?string
+    {
+        $composerPath = $this->basePath('composer.json');
+
+        if (! file_exists($composerPath)) {
+            return null;
+        }
+
+        $composer = json_decode((string) file_get_contents($composerPath), true);
+
+        if (! is_array($composer)) {
+            return null;
+        }
+
+        $require = is_array($composer['require'] ?? null) ? $composer['require'] : [];
+        $requireDev = is_array($composer['require-dev'] ?? null) ? $composer['require-dev'] : [];
+
+        foreach (array_keys($require + $requireDev) as $package) {
+            if (! is_string($package)) {
+                continue;
+            }
+
+            if (str_starts_with($package, 'mahocommerce/')) {
+                return 'maho';
+            }
+
+            if (str_starts_with($package, 'openmage/')) {
+                return 'openmage';
+            }
+
+            if (str_starts_with($package, 'mage-os/')) {
+                return 'mageos';
+            }
+
+            if (str_starts_with($package, 'magento/')) {
+                return 'magento';
+            }
+        }
+
+        return null;
+    }
+
+    protected function askPlatform(): string
+    {
+        if (! isset($this->input) || ! $this->input->isInteractive()) {
+            return 'magento';
+        }
+
+        $question = new ChoiceQuestion(
+            'Which platform is this application (couldn\'t detect it from composer.json)?',
+            $this->platforms,
+            'magento',
+        );
+
+        /** @var string $platform */
+        $platform = $this->io->askQuestion($question);
+
+        return $platform;
+    }
+
+    protected function phpVersion(): string
+    {
+        if ($this->hasOption('php')) {
+            $php = $this->option('php');
+
+            if (is_string($php) && $php !== '') {
+                return $php;
+            }
+        }
+
+        return $this->platform() === 'maho' ? '8.5' : '8.3';
+    }
+
+    protected function applicationServiceName(): string
+    {
+        $composePath = $this->composePath();
+
+        if (file_exists($composePath)) {
+            $compose = Yaml::parseFile($composePath);
+
+            if (is_array($compose)) {
+                $detected = $this->applicationServiceFromCompose($compose);
+
+                if ($detected !== null) {
+                    return $detected;
+                }
+            }
+        }
+
+        return match ($this->platform()) {
+            'maho' => 'maho.test',
+            'openmage' => 'openmage.test',
+            'mageos' => 'mageos.test',
+            default => 'magento.test',
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $compose
+     */
+    protected function applicationServiceFromCompose(array $compose): ?string
+    {
+        $services = $compose['services'] ?? [];
+
+        if (! is_array($services)) {
+            return null;
+        }
+
+        foreach (['maho.test', 'openmage.test', 'mageos.test', 'magento.test'] as $name) {
+            if (array_key_exists($name, $services)) {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $service
+     */
+    protected function setServiceEnvironment(array &$service, string $key, string $value): void
+    {
+        $environment = $service['environment'] ?? [];
+
+        if (! is_array($environment) || array_is_list($environment)) {
+            return;
+        }
+
+        $environment[$key] = $value;
+        $service['environment'] = $environment;
+    }
+
+    /**
+     * @param  list<string>  $arguments
+     */
+    protected function dockerComposeExec(array $arguments): string
+    {
+        return sprintf(
+            'docker compose exec %s %s',
+            escapeshellarg($this->applicationServiceName()),
+            implode(' ', array_map('escapeshellarg', $arguments)),
+        );
+    }
+
+    protected function environmentValue(mixed $environment, string $key): ?string
+    {
+        if (! is_array($environment)) {
+            return null;
+        }
+
+        if (array_key_exists($key, $environment) && is_scalar($environment[$key])) {
+            return (string) $environment[$key];
+        }
+
+        foreach ($environment as $item) {
+            if (is_string($item) && str_starts_with($item, $key . '=')) {
+                return substr($item, strlen($key) + 1);
+            }
+        }
+
+        return null;
     }
 
     protected function composePath(): string

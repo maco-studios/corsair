@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 use Corsair\Console\AddCommand;
 use Corsair\Console\InstallCommand;
+use Corsair\Console\MahoCommand;
+use Corsair\Console\MahoInstallCommand;
 use Corsair\Console\PublishCommand;
 use Symfony\Component\Console\Application;
 
@@ -39,10 +41,17 @@ if ($autoload === null) {
 
 require $autoload;
 
+if (($argv[1] ?? null) === 'maho') {
+    $command = (new MahoCommand())->setProjectPath(getcwd() ?: '.');
+    exit($command->forward(array_slice($argv, 2)));
+}
+
 $application = new Application('Corsair', '0.1.0');
 $application->addCommands([
     new InstallCommand(),
     new AddCommand(),
     new PublishCommand(),
+    new MahoCommand(),
+    new MahoInstallCommand(),
 ]);
 $application->run();
