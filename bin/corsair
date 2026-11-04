@@ -20,7 +20,6 @@ use Corsair\Console\DockerComposeCommand;
 use Corsair\Console\InstallCommand;
 use Corsair\Console\MagentoCommand;
 use Corsair\Console\MahoCommand;
-use Corsair\Console\MahoInstallCommand;
 use Corsair\Console\NpmCommand;
 use Corsair\Console\PublishCommand;
 use Corsair\Console\ShellCommand;
@@ -70,7 +69,7 @@ if ($firstArgument !== null && isset($forwarders[$firstArgument])) {
 }
 
 $corsairCommands = array_merge(
-    ['corsair:install', 'corsair:add', 'corsair:publish', 'maho:install', 'list', 'help'],
+    ['install', 'add', 'publish', 'list', 'help'],
     array_keys($forwarders),
 );
 
@@ -82,13 +81,26 @@ if ($firstArgument !== null && ! str_starts_with($firstArgument, '-') && ! in_ar
     exit($command->forward(array_slice($argv, 1)));
 }
 
-$application = new Application('Corsair', '0.1.0');
-$application->addCommands([
+$commands = [
     new InstallCommand(),
     new AddCommand(),
     new PublishCommand(),
-    new MahoCommand(),
-    new MahoInstallCommand(),
-    new MagentoCommand(),
-]);
+];
+
+// `maho` and `magento` still work when run directly (the forwarders above
+// already intercept them, and MahoCommand/MagentoCommand each error cleanly
+// on a mismatched project anyway) — this only keeps `list`/`help` from
+// advertising a shortcut that can't do anything in the current project, the
+// same way a Maho project never sees `magento` and vice versa.
+if (is_file($cwd . '/maho')) {
+    $commands[] = new MahoCommand();
+}
+
+if (is_file($cwd . '/bin/magento')) {
+    $commands[] = new MagentoCommand();
+}
+
+$application = new Application('Corsair', '0.1.0');
+$application->addCommands($commands);
+
 $application->run();
