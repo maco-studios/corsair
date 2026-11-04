@@ -9,12 +9,16 @@ name: E2E
 # runtime/console code actually changes), and the real-project matrix is
 # opt-in/scheduled rather than on every push, since even a warm run per
 # platform (scaffold + composer require + install + boot) takes 1-5
-# minutes, and Magento 2's is the heaviest of the three.
+# minutes, and Magento 2's is the heaviest of the three. It also runs on
+# every published GitHub release, so a tagged version is never shipped
+# without the real-project matrix having passed against it.
 
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 3 * * *'
+  release:
+    types: [published]
   pull_request:
     paths:
       - 'resources/runtimes/**'
