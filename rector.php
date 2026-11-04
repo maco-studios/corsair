@@ -23,4 +23,9 @@ return RectorConfig::configure()
         deadCode: true,
         codeQuality: true,
         typeDeclarations: true,
-    );
+    )
+    ->withSkip([
+        // Vendored from laravel/prompts (MIT) — see src/Prompts/LICENSE.md.
+        // Kept close to upstream so it stays easy to diff/update by hand.
+        __DIR__ . '/src/Prompts',
+    ]);

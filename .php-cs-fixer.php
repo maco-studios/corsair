@@ -32,6 +32,9 @@ $finder = Finder::create()
     ->in(__DIR__)
     ->exclude([
         'vendor',
+        // Vendored from laravel/prompts (MIT) — see src/Prompts/LICENSE.md.
+        // Not Corsair's own code, so it keeps its original style and license.
+        'src/Prompts',
     ])
     ->notPath([
         '.php-cs-fixer.cache',
