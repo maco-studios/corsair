@@ -75,7 +75,6 @@ trait InteractsWithDockerComposeServices
             label: 'Which services would you like to install?',
             options: array_combine($this->services, $this->services),
             default: $this->defaultServices(),
-            hint: 'Use the space bar to select options.',
             validate: function (array $services): ?string {
                 if (in_array('mysql', $services, true) || in_array('mariadb', $services, true)) {
                     return null;
@@ -83,6 +82,7 @@ trait InteractsWithDockerComposeServices
 
                 return 'Select mysql or mariadb — the application needs a database to run.';
             },
+            hint: 'Use the space bar to select options.',
         );
     }
 
@@ -303,7 +303,7 @@ ENV;
 
         if (count($services) > 0) {
             $this->runCommands([
-                sprintf('docker compose -f %s pull %s', escapeshellarg($composeFile), implode(' ', array_map('escapeshellarg', $services))),
+                sprintf('docker compose -f %s pull %s', escapeshellarg($composeFile), implode(' ', array_map(escapeshellarg(...), $services))),
             ]);
         }
 
@@ -719,7 +719,7 @@ ENV;
             $userFlag,
             $disableTty ? '-T ' : '',
             escapeshellarg($service ?? $this->applicationServiceName()),
-            implode(' ', array_map('escapeshellarg', $arguments)),
+            implode(' ', array_map(escapeshellarg(...), $arguments)),
         );
     }
 

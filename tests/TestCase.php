@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Copyright (c) 2026 Marcos "Marcão" Aurelio
  *
@@ -8,7 +10,6 @@
  *
  * @see https://github.com/maco-studios/corsair
  */
-
 namespace Tests;
 
 use Mockery;

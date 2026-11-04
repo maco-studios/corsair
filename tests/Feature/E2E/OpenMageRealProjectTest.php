@@ -81,7 +81,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    if (! isset($this->project)) {
+    if (!property_exists($this, 'project') || $this->project === null) {
         return;
     }
 
@@ -129,7 +129,7 @@ it('scaffolds, installs, and boots a real OpenMage project through corsair', fun
     // OpenMage ships its own CLI installer (install.php); Corsair has no
     // dedicated shortcut for it (see docs/how-to/install-on-openmage.md),
     // so run it the documented way: through the app container's shell.
-    $installPhp = implode(' ', array_map('escapeshellarg', [
+    $installPhp = implode(' ', array_map(escapeshellarg(...), [
         'php', 'install.php',
         '--license_agreement_accepted', 'yes',
         '--locale', 'en_US',

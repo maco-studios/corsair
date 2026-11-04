@@ -50,7 +50,7 @@ final class ListCommand extends SymfonyListCommand
 
         $application = $this->getApplication();
 
-        if (! $isDefaultView || $application === null) {
+        if (! $isDefaultView || !$application instanceof \Symfony\Component\Console\Application) {
             return parent::execute($input, $output);
         }
 
@@ -71,12 +71,12 @@ final class ListCommand extends SymfonyListCommand
         $output->writeln('');
         $output->writeln('');
 
-        $commands = array_filter($application->all(), static fn($command) => ! $command->isHidden());
+        $commands = array_filter($application->all(), static fn(\Symfony\Component\Console\Command\Command $command): bool => ! $command->isHidden());
         $builtIn = array_intersect_key($commands, array_flip(self::BUILT_IN_COMMANDS));
         $corsair = array_diff_key($commands, $builtIn);
 
         $width = max(array_map(
-            static fn(string $name): int => Helper::width($name),
+            Helper::width(...),
             array_keys($commands),
         ));
 

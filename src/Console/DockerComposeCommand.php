@@ -48,7 +48,7 @@ class DockerComposeCommand extends Command
         $command = sprintf(
             'docker compose -f %s %s',
             escapeshellarg(basename($this->composePath())),
-            implode(' ', array_map('escapeshellarg', $arguments)),
+            implode(' ', array_map(escapeshellarg(...), $arguments)),
         );
 
         if (getenv('CORSAIR_SKIP_DOCKER') === '1') {

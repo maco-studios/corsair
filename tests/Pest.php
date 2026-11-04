@@ -25,7 +25,7 @@ use Tests\TestCase;
 */
 
 (function (): void {
-    $path = dirname(__DIR__) . '/.env';
+    $path = __DIR__ . '/../.env';
 
     if (! is_file($path)) {
         return;
@@ -67,9 +67,7 @@ pest()->extend(TestCase::class)->in('Feature');
 |
 */
 
-expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
-});
+expect()->extend('toBeOne', fn() => $this->toBe(1));
 
 /*
 |--------------------------------------------------------------------------
@@ -150,14 +148,7 @@ function waitForComposeServices(string $projectPath, array $expectedStates, int 
             $health = (string) ($service['Health'] ?? '');
             $states[$service['Service']] = $health !== '' ? $health : (string) ($service['State'] ?? '');
         }
-
-        foreach ($expectedStates as $service => $expected) {
-            if (($states[$service] ?? '') !== $expected) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($expectedStates, fn($expected, $service): bool => !(($states[$service] ?? '') !== $expected));
     }, $timeoutSeconds, 'compose services did not reach the expected state in time: ' . json_encode($expectedStates));
 }
 

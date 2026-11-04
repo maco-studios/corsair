@@ -34,7 +34,7 @@ final class Application extends SymfonyApplication
     protected function getDefaultCommands(): array
     {
         return array_map(
-            static fn($command) => $command instanceof SymfonyListCommand ? new ListCommand() : $command,
+            static fn(\Symfony\Component\Console\Command\Command $command): \Symfony\Component\Console\Command\Command => $command instanceof SymfonyListCommand ? new ListCommand() : $command,
             parent::getDefaultCommands(),
         );
     }

@@ -45,7 +45,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    if (! isset($this->project)) {
+    if (!property_exists($this, 'project') || $this->project === null) {
         return;
     }
 

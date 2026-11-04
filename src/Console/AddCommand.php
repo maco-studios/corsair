@@ -44,7 +44,7 @@ class AddCommand extends Command
             $services = $this->gatherServicesInteractively();
         }
 
-        $services = array_values(array_filter(array_map('trim', $services)));
+        $services = array_values(array_filter(array_map(trim(...), $services)));
 
         if ($invalidServices = array_diff($services, $this->services)) {
             $this->error('Invalid services [' . implode(',', $invalidServices) . '].');
