@@ -6,6 +6,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src=".github/assets/img/badges/license-mit.svg" alt="MIT License"></a>
+  <a href="https://github.com/maco-studios/corsair/actions/workflows/tests.yml"><img src=".github/assets/img/badges/coverage.svg" alt="Test coverage"></a>
   <img src=".github/assets/img/badges/platform-magento.svg" alt="Magento 1 and 2">
   <img src=".github/assets/img/badges/platform-openmage.svg" alt="OpenMage">
   <img src=".github/assets/img/badges/platform-mageos.svg" alt="Mage-OS">
