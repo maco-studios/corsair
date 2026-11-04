@@ -138,7 +138,7 @@ trait InteractsWithDockerComposeServices
                 continue;
             }
 
-            if (array_key_exists($service, $compose['volumes'] ?? [])) {
+            if (array_key_exists('corsair-' . $service, $compose['volumes'] ?? [])) {
                 continue;
             }
 

@@ -314,6 +314,22 @@ it('skips blank lines, comments, and key-less lines when reading .env', function
         ->and($command->callContainerUser())->toBe('1001:1002');
 });
 
+it('does not overwrite an existing named volume when a service is added again', function (): void {
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+    $command->callBuildDockerCompose(['mysql']);
+
+    $compose = Yaml::parseFile($this->project . '/compose.yaml');
+    $compose['volumes']['corsair-mysql']['driver'] = 'custom-marker';
+    file_put_contents($this->project . '/compose.yaml', Yaml::dump($compose, 10, 4));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+    $command->callBuildDockerCompose(['mysql']);
+
+    $compose = Yaml::parseFile($this->project . '/compose.yaml');
+
+    expect($compose['volumes']['corsair-mysql']['driver'])->toBe('custom-marker');
+});
+
 it('leaves a service alone in setServiceEnvironment when its environment is list-style', function (): void {
     $command = composeCommand($this->project)->withInput();
 
