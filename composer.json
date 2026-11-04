@@ -68,7 +68,19 @@
         "post-update-cmd": [
             "@composer normalize"
         ],
+        "lint": "php-cs-fixer fix --dry-run --diff",
+        "lint:fix": "php-cs-fixer fix",
+        "normalize": "composer normalize --dry-run",
+        "normalize:fix": "composer normalize",
+        "rector": "rector process --dry-run",
+        "rector:fix": "rector process",
         "test": "pest --exclude-group=e2e",
-        "test:e2e": "CORSAIR_E2E=1 pest --group=e2e"
+        "test:e2e": "CORSAIR_E2E=1 pest --group=e2e",
+        "ci:check": [
+            "@lint",
+            "@rector",
+            "@normalize",
+            "@test"
+        ]
     }
 }
