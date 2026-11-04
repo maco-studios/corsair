@@ -13,13 +13,13 @@ vendor/bin/corsair ps
 vendor/bin/corsair logs -f
 ```
 
-are equivalent to running `docker compose up -d`, `docker compose down`, `docker compose ps`, and `docker compose logs -f` yourself, just shorter and from any directory where `vendor/bin/corsair` resolves. It requires a Compose file to already exist — run `corsair:install` first, or it fails with "No Compose file found."
+are equivalent to running `docker compose up -d`, `docker compose down`, `docker compose ps`, and `docker compose logs -f` yourself, just shorter and from any directory where `vendor/bin/corsair` resolves. It requires a Compose file to already exist — run `install` first, or it fails with "No Compose file found."
 
-Arguments that match a Corsair command name (`corsair:install`, `corsair:add`, `corsair:publish`, `maho`, `maho:install`, `magento`, `shell`, `npm`, `composer`, `db:query`, `db:dump`, `db:import`), `list`, `help`, or that start with `-` (such as `--version`) are routed to Corsair's own console application instead, never forwarded to Docker.
+Arguments that match a Corsair command name (`install`, `add`, `publish`, `maho`, `magento`, `shell`, `npm`, `composer`, `db:query`, `db:dump`, `db:import`), `list`, `help`, or that start with `-` (such as `--version`) are routed to Corsair's own console application instead, never forwarded to Docker.
 
 ## Container tooling
 
-These proxy straight into the application container (or a service container, for the database commands) instead of going through `docker compose`, the way `sail shell`, `sail npm`, and `sail composer` do for Laravel. All of them require the Compose file to exist first (`corsair:install`).
+These proxy straight into the application container (or a service container, for the database commands) instead of going through `docker compose`, the way `sail shell`, `sail npm`, and `sail composer` do for Laravel. All of them require the Compose file to exist first (`install`).
 
 ### `shell`
 
@@ -61,7 +61,7 @@ Forwards every argument to `composer` inside the app container, e.g. `vendor/bin
 vendor/bin/corsair db:query
 ```
 
-Opens an interactive `mysql` (or `mariadb`, if that's the installed service) client against the installed database, using `DB_USERNAME`, `DB_PASSWORD`, and `DB_DATABASE` from `.env`. Fails if no Compose file exists yet, or if neither `mysql` nor `mariadb` is an installed service (`mysql` wins when both are, matching `maho:install`'s own host resolution).
+Opens an interactive `mysql` (or `mariadb`, if that's the installed service) client against the installed database, using `DB_USERNAME`, `DB_PASSWORD`, and `DB_DATABASE` from `.env`. Fails if no Compose file exists yet, or if neither `mysql` nor `mariadb` is an installed service (`mysql` wins when both are).
 
 ### `db:dump`
 
@@ -79,12 +79,12 @@ vendor/bin/corsair db:import <file.sql>
 
 Pipes `<file.sql>` into `mysql` (or `mariadb`) against the installed database. Fails if the file doesn't exist. Like `db:dump`, this runs without a TTY.
 
-## `corsair:install`
+## `install`
 
 Creates or updates `compose.yaml`, writes `.env`, and (unless `CORSAIR_SKIP_DOCKER=1` is set) pulls and builds the images.
 
 ```bash
-vendor/bin/corsair corsair:install [--with=<services>] [--platform=<platform>] [--php=<version>] [--devcontainer]
+vendor/bin/corsair install [--with=<services>] [--platform=<platform>] [--php=<version>] [--devcontainer]
 ```
 
 | Option | Values | Default | Effect |
@@ -96,25 +96,25 @@ vendor/bin/corsair corsair:install [--with=<services>] [--platform=<platform>] [
 
 The command fails with a non-zero exit code if `--with` names an unsupported service, `--platform` names an unsupported platform, or `--php` is outside the supported range. It also fails for `maho` with PHP earlier than `8.3`, and for `openmage` with PHP earlier than `8.1`; it warns (without failing) when `maho` is installed with PHP earlier than `8.5`, since Maho 26.11 requires `8.5`.
 
-## `corsair:add`
+## `add`
 
 Adds services to an existing installation without touching the platform or PHP version.
 
 ```bash
-vendor/bin/corsair corsair:add [services]
+vendor/bin/corsair add [services]
 ```
 
-`services` is an optional, comma-separated argument (not an option), e.g. `vendor/bin/corsair corsair:add mailpit,varnish`. Pass `none` to add nothing. With no argument, it prompts interactively, or falls back to the same defaults as `corsair:install` when the terminal isn't interactive.
+`services` is an optional, comma-separated argument (not an option), e.g. `vendor/bin/corsair add mailpit,varnish`. Pass `none` to add nothing. With no argument, it prompts interactively, or falls back to the same defaults as `install` when the terminal isn't interactive.
 
-## `corsair:publish`
+## `publish`
 
 Copies the package's Docker runtime and database files from `vendor/maco-studios/corsair/resources/{runtimes,database}` into `./docker` in your project, and rewrites the `build.context` paths in `compose.yaml` to point at the copied files.
 
 ```bash
-vendor/bin/corsair corsair:publish
+vendor/bin/corsair publish
 ```
 
-Fails if no Compose file exists yet — run `corsair:install` first. Use this when you need to edit the Dockerfile, nginx config, `php.ini`, or `supervisord.conf` for your project instead of using the versions shipped with the package.
+Fails if no Compose file exists yet — run `install` first. Use this when you need to edit the Dockerfile, nginx config, `php.ini`, or `supervisord.conf` for your project instead of using the versions shipped with the package.
 
 ## `magento`
 
@@ -124,7 +124,7 @@ Forwards arguments to `bin/magento` inside the application container, for Magent
 vendor/bin/corsair magento <args>...
 ```
 
-Equivalent to `docker compose exec magento.test php bin/magento <args>` (or `mageos.test`, whichever is the resolved app service). Fails if `bin/magento` doesn't exist in the project root, or if the Compose stack has neither a `magento.test` nor a `mageos.test` service. When `CORSAIR_SKIP_DOCKER=1` is set, it prints the command instead of running it.
+Equivalent to `docker compose exec magento.test php bin/magento <args>` (or `mageos.test`, whichever is the resolved app service). Fails if `bin/magento` doesn't exist in the project root, or if the Compose stack has neither a `magento.test` nor a `mageos.test` service. When `CORSAIR_SKIP_DOCKER=1` is set, it prints the command instead of running it. `vendor/bin/corsair list` only shows `magento` when `bin/magento` exists in the project — it still runs if you type it directly.
 
 ## `maho`
 
@@ -134,30 +134,14 @@ Forwards arguments to `./maho` inside the `maho.test` container.
 vendor/bin/corsair maho <args>...
 ```
 
-Equivalent to `docker compose exec maho.test php ./maho <args>`. Fails if `./maho` doesn't exist in the project root, or if the Compose stack has no `maho.test` service (run `corsair:install --platform=maho` first). When `CORSAIR_SKIP_DOCKER=1` is set, it prints the command instead of running it.
+Equivalent to `docker compose exec maho.test php ./maho <args>`. Fails if `./maho` doesn't exist in the project root, or if the Compose stack has no `maho.test` service (run `install --platform=maho` first). When `CORSAIR_SKIP_DOCKER=1` is set, it prints the command instead of running it. `vendor/bin/corsair list` only shows `maho` when `./maho` exists in the project — it still runs if you type it directly.
 
-## `maho:install`
-
-Runs `./maho install` inside `maho.test` using the database credentials from `.env`, then reindexes and flushes the cache.
+Corsair doesn't wrap Maho's own application installer — install it yourself the same way you would `bin/magento setup:install` for Magento, using the database credentials `install` wrote to `.env` (`DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`):
 
 ```bash
-vendor/bin/corsair maho:install [options]
+vendor/bin/corsair maho install --license_agreement_accepted=yes --db_host=mysql --db_name=maho --db_user=corsair --db_pass=password --url=http://localhost/ --admin_username=admin --admin_password=<password>
+vendor/bin/corsair maho index:reindex:all
+vendor/bin/corsair maho cache:flush
 ```
 
-| Option | Default |
-| --- | --- |
-| `--url` | `http://localhost/` (or `http://localhost:<APP_PORT>/` when `APP_PORT` isn't `80`) |
-| `--locale` | `en_US` |
-| `--timezone` | `UTC` |
-| `--currency` | `USD` |
-| `--admin-firstname` | `Store` |
-| `--admin-lastname` | `Admin` |
-| `--admin-email` | `admin@example.com` |
-| `--admin-username` | `admin` |
-| `--admin-password` | `corsair-password1` |
-| `--sample-data` | off — pass the flag to install Maho's sample data |
-| `--skip-reindex` | off — pass the flag to skip `index:reindex:all` and `cache:flush` after install |
-
-`--admin-password` must be at least 7 characters and contain at least one letter and one digit, or the command fails before running anything. The command also fails if no Compose file exists, if the stack isn't a Maho stack (no `maho.test` service), or if `./maho` doesn't exist in the project root.
-
-Database host resolution: if `.env`'s `DB_HOST` is empty, `127.0.0.1`, or `localhost`, the installer substitutes `mariadb` when a `mariadb` service exists and no `mysql` service does, otherwise `mysql`.
+See `vendor/bin/corsair maho install --help` for every option Maho's installer accepts.

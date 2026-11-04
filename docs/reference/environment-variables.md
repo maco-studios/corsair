@@ -1,12 +1,12 @@
 # Environment variables
 
-`corsair:install` and `corsair:add` write to `.env` in the project root, creating it from `.env.example` (or a small built-in default) if it doesn't exist yet. These are the keys Corsair itself reads or writes; application-specific keys are untouched.
+`install` and `add` write to `.env` in the project root, creating it from `.env.example` (or a small built-in default) if it doesn't exist yet. These are the keys Corsair itself reads or writes; application-specific keys are untouched.
 
 ## Always set
 
 | Key | Value | Set by |
 | --- | --- | --- |
-| `CORSAIR_PLATFORM` | the resolved platform (`magento`, `maho`, `openmage`, `mageos`) | `corsair:install` |
+| `CORSAIR_PLATFORM` | the resolved platform (`magento`, `maho`, `openmage`, `mageos`) | `install` |
 | `DB_USERNAME` | `corsair` | whenever `mysql` or `mariadb` is selected |
 | `DB_PASSWORD` | `password` | whenever `mysql` or `mariadb` is selected |
 | `DB_DATABASE` | the platform's default database name (see [Platforms](platforms.md)) | whenever `mysql` or `mariadb` is selected |
@@ -36,4 +36,4 @@ If a value already exists in `.env`, Corsair overwrites it in place; otherwise i
 | `XDEBUG_CONFIG` | `xdebug.client_host`, used by IDEs expecting this variable | `client_host=host.docker.internal` |
 | `FORWARD_DB_PORT`, `FORWARD_REDIS_PORT`, `FORWARD_ELASTICSEARCH_PORT`, `FORWARD_OPENSEARCH_PORT`, `FORWARD_RABBITMQ_PORT`, `FORWARD_RABBITMQ_DASHBOARD_PORT`, `FORWARD_MAILPIT_PORT`, `FORWARD_MAILPIT_DASHBOARD_PORT`, `FORWARD_VARNISH_PORT` | host ports forwarded to each service | the service's default port (see [Services](services.md)) |
 
-`maho:install` additionally reads `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, and `APP_PORT` from `.env` to build the `./maho install` command.
+When running Maho's own installer (`vendor/bin/corsair maho install ...`), pass `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` from `.env` as its `--db_host`, `--db_name`, `--db_user`, and `--db_pass` options, and build `--url`/`--secure_base_url` from `APP_PORT` if it isn't `80`.

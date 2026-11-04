@@ -18,7 +18,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'corsair:install', description: 'Install Corsair\'s default Docker Compose file')]
+#[AsCommand(name: 'install', description: 'Install Corsair\'s default Docker Compose file')]
 class InstallCommand extends Command
 {
     use Concerns\InteractsWithDockerComposeServices;
@@ -89,19 +89,16 @@ class InstallCommand extends Command
 
         $this->output->writeln('');
         $this->info('Corsair scaffolding installed successfully. You may run your Docker containers using:');
-        $this->output->writeln('<fg=gray>➜</> <options=bold>docker compose up -d</>');
+        $this->output->writeln('<fg=gray>➜</> <options=bold>vendor/bin/corsair up -d</>');
 
         if ($this->platform() === 'maho') {
-            $this->output->writeln('Maho serves the store from <options=bold>public/</>. Install the application once the containers are up:');
-            $this->output->writeln('<fg=gray>➜</> <options=bold>vendor/bin/corsair maho:install</>');
-            $this->output->writeln('Run the Maho CLI with <options=bold>vendor/bin/corsair maho</>.');
+            $this->output->writeln('Maho serves the store from <options=bold>public/</>. Install the application once the containers are up, the same way you would for Magento or OpenMage — run its own installer yourself:');
+            $this->output->writeln('<fg=gray>➜</> <options=bold>vendor/bin/corsair maho install --license_agreement_accepted=yes --db_host=mysql --db_name=maho --db_user=corsair --db_pass=password --url=http://localhost/ --admin_username=admin --admin_password=<password></>');
+            $this->output->writeln('Run any other Maho CLI command with <options=bold>vendor/bin/corsair maho</>.');
         }
 
         if (in_array('mysql', $services, true) || in_array('mariadb', $services, true)) {
-            $message = $this->platform() === 'maho'
-                ? 'Database credentials were written to .env. maho:install uses them for ./maho install.'
-                : 'A database service was installed. Configure Magento to use the container hostname and credentials from your .env file.';
-            $this->warn($message);
+            $this->warn('A database service was installed. Use the container hostname and credentials from your .env file when running the application\'s own installer.');
         }
 
         $this->output->writeln('');

@@ -1,6 +1,6 @@
 # How to move Maho's cache and sessions to Redis
 
-By default, `maho:install` leaves cache and sessions on the filesystem. If you installed the `redis` service (`corsair:install --with=redis,...` or `corsair:add redis`), it already runs with `redis-server --maxmemory-policy volatile-lfu`, which is what Maho's Redis cache backend requires.
+By default, Maho's own installer leaves cache and sessions on the filesystem. If you installed the `redis` service (`install --with=redis,...` or `add redis`), it already runs with `redis-server --maxmemory-policy volatile-lfu`, which is what Maho's Redis cache backend requires.
 
 Add this inside `<global>` in `app/etc/local.xml`:
 

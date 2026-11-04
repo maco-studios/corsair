@@ -14,7 +14,7 @@
 | Default database name | `magento` | `maho` | `openmage` | `mageos` |
 | Scheduler container command | `php bin/magento cron:run`, every 60s | `php ./maho cron:run default` then `cron:run always`, every 60s | `php ./cron.php`, every 60s | `php bin/magento cron:run`, every 60s |
 | Queue container command | starts every `bin/magento queue:consumers:list` consumer, every 60s | `php ./maho queue:work --exclusive`, every 5s | none | starts every `bin/magento queue:consumers:list` consumer, every 60s |
-| Install CLI | project-specific (`bin/magento setup:install`, Magento 1 installer) | `vendor/bin/corsair maho:install` | project-specific | `bin/magento setup:install` |
+| Install CLI | project-specific (`bin/magento setup:install`, Magento 1 installer) | project-specific (`vendor/bin/corsair maho install`) | project-specific | `bin/magento setup:install` |
 | CLI shortcut | `vendor/bin/corsair magento <args>` (Magento 2 only — Magento 1 has no `bin/magento`, use `shell`) | `vendor/bin/corsair maho <args>` | none — use `vendor/bin/corsair shell` and run `shell/*.php` scripts directly | `vendor/bin/corsair magento <args>` |
 
 `openmage` and `maho` get a Nginx config (`nginx-openmage.conf`, `nginx-maho.conf`) that locks down the classic Magento 1 directory layout (`app/`, `includes/`, `lib/`, `pkginfo/`, `shell/`, `var/`) and routes only the entry points above through PHP; `magento` and `mageos` use the standard `pub/`-rooted config. See [Platform detection](../explanation/platform-detection.md) for how the value is resolved when `--platform` is omitted.

@@ -776,8 +776,7 @@ ENV;
 
     /**
      * The installed MySQL-compatible database service, if any. `mysql` wins
-     * when both are present, matching how `maho:install`'s databaseHost()
-     * already breaks the tie.
+     * when both are present.
      */
     protected function databaseEngine(): ?string
     {

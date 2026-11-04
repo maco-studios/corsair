@@ -84,7 +84,7 @@ it('installs a maho stack on php 8.5', function (): void {
     ], ['interactive' => false]);
 
     expect($status)->toBe(0)
-        ->and($tester->getDisplay())->toContain('maho:install');
+        ->and($tester->getDisplay())->toContain('vendor/bin/corsair maho install');
 
     $compose = Yaml::parseFile($this->project . '/compose.yaml');
 

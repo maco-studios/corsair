@@ -2,9 +2,9 @@
 
 Every command that needs to know whether it's working with Magento, Maho, OpenMage, or Mage-OS resolves it the same way, in this order:
 
-1. **The `--platform` option**, when the command accepts one and it's set (only `corsair:install` takes this option — `corsair:add`, `maho`, and `maho:install` always infer it).
+1. **The `--platform` option**, when the command accepts one and it's set (only `install` takes this option — `add`, `maho`, and `maho install` always infer it).
 2. **The existing `compose.yaml`**, if one exists:
-   - first, by reading the `CORSAIR_PLATFORM` environment variable off any service in the file (this is the value `corsair:install` wrote the first time);
+   - first, by reading the `CORSAIR_PLATFORM` environment variable off any service in the file (this is the value `install` wrote the first time);
    - failing that, by checking whether a `maho.test` service exists, in which case the platform is `maho`.
 3. **`composer.json`**, by looking at `require` and `require-dev` for a package starting with `mahocommerce/`, `openmage/`, `mage-os/`, or `magento/`, in that order. The first match wins, so a project that depends on both a Maho and a Magento package (unusual, but possible during a migration) resolves to `maho`.
 4. **An interactive prompt**, defaulting to `magento`, if the terminal is interactive.
@@ -18,4 +18,4 @@ Corsair is installed as a `require-dev` dependency of the Magento/Maho/OpenMage/
 
 ## Why `compose.yaml` is checked before `composer.json`
 
-Once a project has been installed with `corsair:install`, `compose.yaml` is the more authoritative source: it's possible (if unusual) to install Corsair for a platform other than the one the dev dependency's name would imply, and subsequent commands (`corsair:add`, `maho`, `maho:install`) must keep agreeing with whatever was actually installed, not re-derive a possibly different answer from `composer.json` each time.
+Once a project has been installed with `install`, `compose.yaml` is the more authoritative source: it's possible (if unusual) to install Corsair for a platform other than the one the dev dependency's name would imply, and subsequent commands (`add`, `maho`) must keep agreeing with whatever was actually installed, not re-derive a possibly different answer from `composer.json` each time.

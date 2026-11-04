@@ -2,7 +2,7 @@
 
 This tutorial walks through setting up a brand-new MahoCommerce store with Corsair, from an empty directory to a working admin login, so you can see the whole workflow end to end. It assumes Docker Engine (with Compose) or Docker Desktop, Git, and PHP's Composer are already installed on your machine.
 
-MahoCommerce is used here because it's the one platform Corsair can fully install for you with a single command — for Magento 1, Magento 2, OpenMage, and Mage-OS, Corsair sets up the environment but you run that platform's own installer. Once you've done this tutorial, the [how-to guides](../how-to/) cover each platform, including those.
+MahoCommerce is used here because it has the simplest installer of the four supported platforms. Corsair's job stops at the Docker environment for every platform, Maho included — it never runs the application's own installer for you, the same way it doesn't run `bin/magento setup:install` for Magento. Once you've done this tutorial, the [how-to guides](../how-to/) cover each platform, including those.
 
 ## 1. Create the project
 
@@ -24,7 +24,7 @@ Corsair is installed as a dev dependency, so it never ships to production.
 ## 3. Install the Corsair scaffolding
 
 ```bash
-vendor/bin/corsair corsair:install --platform=maho
+vendor/bin/corsair install --platform=maho
 ```
 
 In an interactive terminal, you'll be prompted for which services to install — accept the defaults (`mysql`, `redis`) by pressing Enter. This writes `compose.yaml` and `.env` in your project, and builds the application image.
@@ -49,11 +49,22 @@ You should see `maho.test` (the app), `scheduler`, `queue`, `mysql`, and `redis`
 
 ## 5. Install Maho
 
+Corsair's job is the Docker environment — installing the application itself is up to you, the same way you'd run `bin/magento setup:install` for Magento. Run Maho's own installer through the `maho` shortcut, using the database credentials `install` already wrote to `.env`:
+
 ```bash
-vendor/bin/corsair maho:install --sample-data
+vendor/bin/corsair maho install \
+  --license_agreement_accepted=yes \
+  --db_host=mysql --db_name=maho --db_user=corsair --db_pass=password \
+  --url=http://localhost/ --secure_base_url=http://localhost/ \
+  --use_secure=0 --use_secure_admin=0 \
+  --admin_firstname=Store --admin_lastname=Admin \
+  --admin_email=admin@example.com --admin_username=admin --admin_password=corsair-password1 \
+  --sample_data=1
+vendor/bin/corsair maho index:reindex:all
+vendor/bin/corsair maho cache:flush
 ```
 
-This runs `./maho install` inside the `maho.test` container using the database credentials Corsair already wrote to `.env`, then reindexes and flushes the cache. It prints the storefront and admin URLs when it finishes — by default, `http://localhost/` and `http://localhost/admin`.
+This runs `./maho install` inside the `maho.test` container, then reindexes and flushes the cache so the storefront reflects it immediately.
 
 ## 6. Log in
 

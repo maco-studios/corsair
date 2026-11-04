@@ -57,7 +57,7 @@ it('scaffolds, installs, and boots a real MahoCommerce project through corsair',
 
     expect(is_file($binary))->toBeTrue('composer require did not install vendor/bin/corsair');
 
-    $install = new Process([PHP_BINARY, $binary, 'corsair:install', '--platform=maho', '--with=mysql,redis', '--php=8.5'], $this->project);
+    $install = new Process([PHP_BINARY, $binary, 'install', '--platform=maho', '--with=mysql,redis', '--php=8.5'], $this->project);
     $install->setTimeout(1800);
     $install->run();
 
@@ -79,13 +79,41 @@ it('scaffolds, installs, and boots a real MahoCommerce project through corsair',
         'maho.test' => 'running',
     ]);
 
-    // Real `./maho install` against the real mysql container, through the
-    // same `vendor/bin/corsair maho:install` a developer would run.
-    $mahoInstall = new Process([PHP_BINARY, $binary, 'maho:install', '--admin-password=Corsair123456!'], $this->project);
+    // Real `./maho install` against the real mysql container, driven
+    // manually through `vendor/bin/corsair maho` the same way a developer
+    // would — Corsair doesn't wrap the application installer itself for
+    // any platform, Maho included.
+    $url = 'http://localhost:' . $appPort . '/';
+    $mahoInstall = new Process([
+        PHP_BINARY, $binary, 'maho', 'install',
+        '--license_agreement_accepted=yes',
+        '--locale=en_US',
+        '--timezone=UTC',
+        '--default_currency=USD',
+        '--db_host=mysql',
+        '--db_name=maho',
+        '--db_user=corsair',
+        '--db_pass=password',
+        '--url=' . $url,
+        '--secure_base_url=' . $url,
+        '--use_secure=0',
+        '--use_secure_admin=0',
+        '--admin_firstname=Store',
+        '--admin_lastname=Admin',
+        '--admin_email=admin@example.com',
+        '--admin_username=admin',
+        '--admin_password=Corsair123456!',
+    ], $this->project);
     $mahoInstall->setTimeout(900);
     $mahoInstall->run();
 
     expect($mahoInstall->isSuccessful())->toBeTrue($mahoInstall->getErrorOutput() . $mahoInstall->getOutput());
+
+    $reindex = new Process([PHP_BINARY, $binary, 'maho', 'index:reindex:all'], $this->project);
+    $reindex->setTimeout(300);
+    $reindex->run();
+
+    expect($reindex->isSuccessful())->toBeTrue($reindex->getErrorOutput() . $reindex->getOutput());
 
     // The storefront actually boots and responds with HTML, not a stub.
     waitForHttp($appPort);
