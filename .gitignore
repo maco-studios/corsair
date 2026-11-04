@@ -5,3 +5,4 @@
 !/var/tmp/
 /var/tmp/*
 !/var/tmp/.gitkeep
+/.env
