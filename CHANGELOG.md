@@ -1,5 +1,17 @@
 # Changelog
 
+<a name="0.0.4"></a>
+## 0.0.4 (2026-11-04)
+
+### Added
+
+- ✨ feat(console): aggregate php constraints from composer.lock [[40748d3](https://github.com/maco-studios/corsair/commit/40748d3ba70492035ff8959e23eeb22cd16e9403)]
+
+### Miscellaneous
+
+- 📊 chore(ci): update coverage badge [[f3a70d7](https://github.com/maco-studios/corsair/commit/f3a70d7817b536199bf714f270f565024ecd3732)]
+
+
 <a name="0.0.3"></a>
 ## 0.0.3 (2026-11-04)
 
