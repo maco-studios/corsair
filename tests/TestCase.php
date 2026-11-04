@@ -10,6 +10,7 @@ declare(strict_types=1);
  *
  * @see https://github.com/maco-studios/corsair
  */
+
 namespace Tests;
 
 use Mockery;
