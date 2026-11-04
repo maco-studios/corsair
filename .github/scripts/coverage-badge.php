@@ -1,11 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 /**
- * Renders a static flat-style SVG badge ("coverage | NN%") from a
- * Clover coverage report, with no external badge service involved.
+ * Copyright (c) 2026 Marcos "Marcão" Aurelio
  *
- * Usage: php coverage-badge.php <clover.xml> <output.svg>
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ *
+ * @see https://github.com/maco-studios/corsair
  */
+
+// Renders a static flat-style SVG badge ("coverage | NN%") from a Clover
+// coverage report, with no external badge service involved.
+// Usage: php coverage-badge.php <clover.xml> <output.svg>
 
 [, $cloverPath, $outputPath] = $argv;
 
