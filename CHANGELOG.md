@@ -5,6 +5,12 @@
 
 ### Added
 
+- ✨ feat(readme): add buy me a coffee link [[4363abd](https://github.com/maco-studios/corsair/commit/4363abd62392dba43d3454fe5b8d98065529735f)]
+- ✅ test(console): cover platform-detection edge cases [[52beb5c](https://github.com/maco-studios/corsair/commit/52beb5c70e854d73c560f1261c9ba9cd455527a5)]
+- ✅ test(console): cover remaining trait branches [[0bf2341](https://github.com/maco-studios/corsair/commit/0bf23419437a6d5244aac053305e3b5618b2fa5e)]
+- ✅ test(console): cover the real-docker and error paths [[d60cbc6](https://github.com/maco-studios/corsair/commit/d60cbc69efdd14fe58144125d705d47b388498a3)]
+- 👷‍♂️ ci(github): add dependency review and stale bot [[134734d](https://github.com/maco-studios/corsair/commit/134734d6d568f25e196d9fb77e6f513f3298c466)]
+- 👷‍♂️ ci(release): gate publishing on tests and e2e [[3adcd58](https://github.com/maco-studios/corsair/commit/3adcd5888764500b71122fc97669dc8556afbea4)]
 - 👷‍♂️ ci(e2e): run the e2e suite on published releases [[4f4581f](https://github.com/maco-studios/corsair/commit/4f4581fba5ba7d2c4ad163165f9166337f37467f)]
 - ✨ feat(ci): add test coverage reporting and a static badge [[e320801](https://github.com/maco-studios/corsair/commit/e32080143593544d3590d1a5a864706824ea4007)]
 - 👷‍♂️ ci(github): add unit and real-docker e2e workflows [[f203433](https://github.com/maco-studios/corsair/commit/f203433b3ec77417c547f1ca25c72465741f3f29)]
@@ -26,6 +32,7 @@
 
 ### Changed
 
+- ⏪ revert(release): drop the auto-publish gate workflow [[3366f62](https://github.com/maco-studios/corsair/commit/3366f62ad9e33803df057e91943907294d4c945d)]
 - ⬆️ build(deps): widen symfony constraints for ecosystem compat [[98deefa](https://github.com/maco-studios/corsair/commit/98deefab36736cdfae618afab8f8ca4dab439e95)]
 - 🚚 refactor(assets): rename magento badge to platform-magento [[1ded3fb](https://github.com/maco-studios/corsair/commit/1ded3fb3ed0b44c74e243265a7cc08616029a408)]
 - 🗃️ feat(database): add mysql mariadb and pgsql init scripts [[e30bcd1](https://github.com/maco-studios/corsair/commit/e30bcd150b5a55e71f7f9d0eaa3bba2bd370d3f0)]
@@ -40,6 +47,7 @@
 
 ### Fixed
 
+- 🐛 fix(console): dedupe named volumes by their written key [[42d788d](https://github.com/maco-studios/corsair/commit/42d788d40ef938a0876f1c5846512c1cc1c88104)]
 - 🐛 fix(ci): add missing license header to coverage badge script [[4a49384](https://github.com/maco-studios/corsair/commit/4a49384b93e436e0926763d0ef0e9ee9e8108008)]
 - 🐛 fix(ci): trigger tests workflow on main instead of master [[5adae36](https://github.com/maco-studios/corsair/commit/5adae362ed5d66f0bcb737f0e5cd30ca293110b8)]
 - 💚 fix(ci): bump host php to 8.4 so composer install works [[3686c24](https://github.com/maco-studios/corsair/commit/3686c241e34a49c52eed8cb90f45dba578bf22d4)]
@@ -50,7 +58,18 @@
 
 ### Miscellaneous
 
+- 📊 chore(ci): update coverage badge [[57521cc](https://github.com/maco-studios/corsair/commit/57521cc163a5a3d2f12609435b64b5a4acecb461)]
+- 📊 chore(ci): update coverage badge [[2cd780d](https://github.com/maco-studios/corsair/commit/2cd780de36bc866b9d175cda0e53cbc5fbc08553)]
+- 📊 chore(ci): update coverage badge [[d858742](https://github.com/maco-studios/corsair/commit/d8587428e976b86fddb445c2126e0d282d093386)]
+- 📊 chore(ci): update coverage badge [[b5c52ff](https://github.com/maco-studios/corsair/commit/b5c52fff8598e0f6602eeb5f664089a437638a85)]
 - 📊 chore(ci): update coverage badge [[7576871](https://github.com/maco-studios/corsair/commit/7576871c1dc2f07b941d749975bab9427c418034)]
+- 🚧 chore(readme): mark the project as under construction [[228dccd](https://github.com/maco-studios/corsair/commit/228dccdf9f9538ddc428e8c26a4cc148bcb300cb)]
+- 📝 docs(readme): trim the badge row down to 3 [[8925893](https://github.com/maco-studios/corsair/commit/8925893fdbb71a485bb3b6aef1899165b0e1074e)]
+- 📝 docs: add packagist metadata and version badges [[6c12153](https://github.com/maco-studios/corsair/commit/6c121539ce1f7675b478156675e46136fb3aa7d6)]
+- 📝 docs(github): add issue and pull request templates [[6515af3](https://github.com/maco-studios/corsair/commit/6515af30f3c2fc0f70dfa396aca7fea4757a216c)]
+- 📝 docs: add contributing guide [[0b53411](https://github.com/maco-studios/corsair/commit/0b53411fd00562e1f346d9d7a50ceb0099232a24)]
+- 📝 docs: add contributor covenant code of conduct [[30c816e](https://github.com/maco-studios/corsair/commit/30c816e432fa766f94f0490857458f00987a20af)]
+- 📝 docs(changelog): add CHANGELOG.md for the 0.0.1 release [[ce61cf2](https://github.com/maco-studios/corsair/commit/ce61cf2b3d2d73c2fef60f53bf4e362e186ccc44)]
 - 📝 docs: tighten readme intro and quickstart copy [[3f7c945](https://github.com/maco-studios/corsair/commit/3f7c945ad0353c3de4f7f477badc029b7ad77369)]
 - 🙈 chore(git): ignore the local .env file [[d373e3d](https://github.com/maco-studios/corsair/commit/d373e3d254bcc99938977b95848dc050edc9643d)]
 - 🩹 fix(openmage): patch install.php cache-lock crash [[10c6806](https://github.com/maco-studios/corsair/commit/10c6806a1d7f452d1b173173b335e77435b649a7)]
