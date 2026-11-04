@@ -17,6 +17,8 @@ are equivalent to running `docker compose up -d`, `docker compose down`, `docker
 
 Arguments that match a Corsair command name (`install`, `add`, `publish`, `maho`, `magento`, `shell`, `npm`, `composer`, `db:query`, `db:dump`, `db:import`), `list`, `help`, or that start with `-` (such as `--version`) are routed to Corsair's own console application instead, never forwarded to Docker.
 
+Running `vendor/bin/corsair` with no arguments, or `vendor/bin/corsair list`, groups Corsair's own commands under their own `corsair` section, separate from Symfony Console's built-in `help`/`list`/`completion`. `--raw`, `--format`, `--short`, and a namespace argument still use Symfony's normal, ungrouped output, for scripting and shell completion.
+
 ## Container tooling
 
 These proxy straight into the application container (or a service container, for the database commands) instead of going through `docker compose`, the way `sail shell`, `sail npm`, and `sail composer` do for Laravel. All of them require the Compose file to exist first (`install`).
