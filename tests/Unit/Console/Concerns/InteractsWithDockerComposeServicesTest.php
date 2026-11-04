@@ -86,6 +86,28 @@ it('falls back to magento non-interactively when nothing identifies the platform
     expect($command->callPlatform())->toBe('magento');
 });
 
+it('skips a non-array service entry when scanning compose services for a platform', function (): void {
+    file_put_contents($this->project . '/compose.yaml', Yaml::dump([
+        'services' => ['magento.test' => 'not-an-array'],
+    ]));
+
+    $command = composeCommand($this->project)->withInput();
+
+    expect($command->callPlatform())->toBe('magento');
+});
+
+it('skips a non-string package key and returns null when nothing matches a platform', function (): void {
+    // A purely-numeric string object key in the JSON becomes an int array
+    // key once decoded, which platformFromComposerJson() skips over.
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['0' => 'placeholder/ignored', 'some/unrelated-package' => '^1.0'],
+    ]));
+
+    $command = composeCommand($this->project)->withInput();
+
+    expect($command->callPlatformFromComposerJson())->toBeNull();
+});
+
 dataset('composer platforms', [
     'maho' => ['mahocommerce/maho-starter', 'maho'],
     'openmage' => ['openmage/magento-lts', 'openmage'],
