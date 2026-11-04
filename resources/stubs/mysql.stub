@@ -1,5 +1,11 @@
 mysql:
     image: 'mysql:8.4'
+    # mysql:8.4 enables binary logging by default. Magento 2's schema setup
+    # creates triggers (e.g. the indexer changelog tables), which MySQL
+    # refuses for a non-SUPER user while binlog is on ("You do not have the
+    # SUPER privilege and binary logging is enabled") — there's no
+    # replication to serve in a local dev stack, so just turn it off.
+    command: --disable-log-bin
     ports:
         - '${FORWARD_DB_PORT:-3306}:3306'
     environment:
