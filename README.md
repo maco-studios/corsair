@@ -6,7 +6,10 @@
 
 <p align="center">
   <a href="LICENSE"><img src=".github/assets/img/badges/license-mit.svg" alt="MIT License"></a>
-  <img src=".github/assets/img/badges/magento.svg" alt="Magento 1, Magento 2, OpenMage, Mage-OS, and MahoCommerce">
+  <img src=".github/assets/img/badges/platform-magento.svg" alt="Magento 1 and 2">
+  <img src=".github/assets/img/badges/platform-openmage.svg" alt="OpenMage">
+  <img src=".github/assets/img/badges/platform-mageos.svg" alt="Mage-OS">
+  <img src=".github/assets/img/badges/platform-maho.svg" alt="MahoCommerce">
 </p>
 
 <p align="center"><strong>A Docker-powered development environment for Magento 1, Magento 2, OpenMage, Mage-OS, and MahoCommerce.</strong></p>
