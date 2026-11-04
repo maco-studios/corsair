@@ -275,6 +275,37 @@ it('detects the mageos platform from composer.json', function (): void {
         ->and($compose['services']['mageos.test']['environment']['CORSAIR_PLATFORM'])->toBe('mageos');
 });
 
+it('rejects an invalid php version', function (): void {
+    $command = (new InstallCommand())->setProjectPath($this->project);
+    $tester = new CommandTester($command);
+
+    $status = $tester->execute([
+        '--php' => '7.4',
+    ], ['interactive' => false]);
+
+    expect($status)->toBe(1)
+        ->and(file_exists($this->project . '/compose.yaml'))->toBeFalse();
+});
+
+it('asks interactively for services when none are given on a tty', function (): void {
+    $command = (new InstallCommand())->setProjectPath($this->project);
+    $tester = new CommandTester($command);
+    // Computing the services question's default value resolves the
+    // platform first (it's not yet known from a compose file or
+    // composer.json), so that's asked as its own interactive question
+    // ahead of the services one.
+    $tester->setInputs(['magento', 'redis']);
+
+    // See AddCommandTest for why this generates harmless PHP warnings.
+    $status = withWarningsSuppressed(fn(): int => $tester->execute([], ['interactive' => true]));
+
+    expect($status)->toBe(0);
+
+    $compose = Yaml::parseFile($this->project . '/compose.yaml');
+
+    expect($compose['services']['magento.test']['depends_on'])->toContain('redis');
+});
+
 it('rejects invalid services', function (): void {
     $command = (new InstallCommand())->setProjectPath($this->project);
     $tester = new CommandTester($command);

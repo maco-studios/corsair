@@ -55,3 +55,61 @@ it('adds a service to an existing compose file', function (): void {
     expect($compose['services'])->toHaveKeys(['magento.test', 'mysql', 'redis', 'mailpit'])
         ->and($compose['services']['magento.test']['depends_on'])->toContain('mysql', 'redis', 'mailpit');
 });
+
+it('adds no services when "none" is given', function (): void {
+    $command = (new AddCommand())->setProjectPath($this->project);
+    $tester = new CommandTester($command);
+
+    $status = $tester->execute([
+        'services' => 'none',
+    ], ['interactive' => false]);
+
+    expect($status)->toBe(0);
+
+    $compose = Yaml::parseFile($this->project . '/compose.yaml');
+
+    expect($compose['services']['magento.test']['depends_on'] ?? [])->toContain('mysql')
+        ->and($compose['services']['magento.test']['depends_on'] ?? [])->not->toContain('redis');
+});
+
+it('falls back to the platform defaults when no services are given non-interactively', function (): void {
+    $command = (new AddCommand())->setProjectPath($this->project);
+    $tester = new CommandTester($command);
+
+    $status = $tester->execute([], ['interactive' => false]);
+
+    expect($status)->toBe(0);
+
+    $compose = Yaml::parseFile($this->project . '/compose.yaml');
+
+    expect($compose['services']['magento.test']['depends_on'])->toContain('mysql', 'redis', 'opensearch');
+});
+
+it('asks interactively for services when none are given on a tty', function (): void {
+    $command = (new AddCommand())->setProjectPath($this->project);
+    $tester = new CommandTester($command);
+    $tester->setInputs(['redis']);
+
+    // gatherServicesInteractively() passes service *names* as the
+    // ChoiceQuestion default rather than their numeric indices, which
+    // Symfony's question helper only expects for a multiselect default
+    // display — harmless (the command still succeeds), just noisy.
+    $status = withWarningsSuppressed(fn(): int => $tester->execute([], ['interactive' => true]));
+
+    expect($status)->toBe(0);
+
+    $compose = Yaml::parseFile($this->project . '/compose.yaml');
+
+    expect($compose['services']['magento.test']['depends_on'])->toContain('redis');
+});
+
+it('rejects invalid services given as an argument', function (): void {
+    $command = (new AddCommand())->setProjectPath($this->project);
+    $tester = new CommandTester($command);
+
+    $status = $tester->execute([
+        'services' => 'redis,not-a-real-service',
+    ], ['interactive' => false]);
+
+    expect($status)->toBe(1);
+});

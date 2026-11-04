@@ -63,3 +63,17 @@ it('publishes runtimes and rewrites compose build context', function (): void {
         ->not->toContain('./vendor/maco-studios/corsair/resources/runtimes/8.3')
         ->not->toContain('./vendor/maco-studios/corsair/resources/database/mysql');
 });
+
+it('refuses to publish without a compose file', function (): void {
+    $empty = temporaryProjectPath('corsair-publish-empty');
+    mkdir($empty, 0755, true);
+
+    $command = (new PublishCommand())->setProjectPath($empty);
+    $tester = new CommandTester($command);
+
+    $status = $tester->execute([]);
+
+    expect($status)->toBe(1);
+
+    removeDirectoryRecursively($empty);
+});

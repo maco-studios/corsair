@@ -85,6 +85,36 @@ it('adds a service to the maho app container', function (): void {
         ->and($compose['services']['redis']['command'])->toContain('volatile-lfu');
 });
 
+it('refuses to run when the maho.test service is missing', function (): void {
+    $otherProject = temporaryProjectPath('corsair-maho-wrong-platform');
+    mkdir($otherProject, 0755, true);
+
+    $installer = (new InstallCommand())->setProjectPath($otherProject);
+    (new CommandTester($installer))->execute(['--platform' => 'magento'], ['interactive' => false]);
+    file_put_contents($otherProject . '/maho', "#!/usr/bin/env php\n");
+
+    $tester = new CommandTester((new MahoCommand())->setProjectPath($otherProject));
+    $status = $tester->execute([], ['interactive' => false]);
+
+    expect($status)->toBe(1);
+
+    removeDirectoryRecursively($otherProject);
+});
+
+it('runs the real maho command when not skipping docker', function (): void {
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => (new MahoCommand())->setProjectPath($this->project)->forward(['cache:flush']));
+
+    expect($status)->toBe(0);
+});
+
+it('fails the real maho command when the docker command exits non-zero', function (): void {
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => (new MahoCommand())->setProjectPath($this->project)->forward(['cache:flush']), exitCode: 1);
+
+    expect($status)->toBe(1);
+});
+
 it('refuses to run without the maho cli', function (): void {
     unlink($this->project . '/maho');
 

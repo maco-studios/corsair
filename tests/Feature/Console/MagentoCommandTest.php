@@ -110,3 +110,29 @@ it('refuses to run on platforms without bin/magento even if the file exists', fu
 
     expect($status)->toBe(1);
 });
+
+it('runs the real bin/magento command when not skipping docker', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento'], ['interactive' => false]);
+
+    mkdir($this->project . '/bin', 0755, true);
+    file_put_contents($this->project . '/bin/magento', "#!/usr/bin/env php\n");
+
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => (new MagentoCommand())->setProjectPath($this->project)->forward(['cache:flush']));
+
+    expect($status)->toBe(0);
+});
+
+it('fails the real bin/magento command when the docker command exits non-zero', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento'], ['interactive' => false]);
+
+    mkdir($this->project . '/bin', 0755, true);
+    file_put_contents($this->project . '/bin/magento', "#!/usr/bin/env php\n");
+
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => (new MagentoCommand())->setProjectPath($this->project)->forward(['cache:flush']), exitCode: 1);
+
+    expect($status)->toBe(1);
+});

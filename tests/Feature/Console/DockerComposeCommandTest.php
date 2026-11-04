@@ -54,6 +54,37 @@ it('refuses to forward when no compose file exists yet', function (): void {
     expect($status)->toBe(1);
 });
 
+it('runs the real docker compose command when not skipping docker', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento'], ['interactive' => false]);
+
+    $command = (new DockerComposeCommand())->setProjectPath($this->project);
+
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => $command->forward(['ps']));
+
+    expect($status)->toBe(0);
+});
+
+it('fails when the real docker compose command exits non-zero', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento'], ['interactive' => false]);
+
+    $command = (new DockerComposeCommand())->setProjectPath($this->project);
+
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => $command->forward(['ps']), exitCode: 1);
+
+    expect($status)->toBe(1);
+});
+
+it('has an inert execute() for when Symfony runs it directly', function (): void {
+    $command = new DockerComposeCommand();
+    $status = (new CommandTester($command))->execute([]);
+
+    expect($status)->toBe(0);
+});
+
 it('aliases vendor/bin/corsair up to docker compose up', function (): void {
     $installer = (new InstallCommand())->setProjectPath($this->project);
     (new CommandTester($installer))->execute(['--platform' => 'magento'], ['interactive' => false]);

@@ -104,3 +104,100 @@ it('adds mysql after a bare install and lets db:query find it', function (): voi
 
     expect($status)->toBe(0);
 });
+
+it('refuses db:import when no source file argument is given at all', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento', '--with' => 'mysql'], ['interactive' => false]);
+
+    $status = (new DatabaseCommand())->setProjectPath($this->project)->import([]);
+
+    expect($status)->toBe(1);
+});
+
+it('has an inert execute() for when Symfony runs it directly', function (): void {
+    $status = (new CommandTester(new DatabaseCommand()))->execute([]);
+
+    expect($status)->toBe(0);
+});
+
+it('runs the real db:query command when not skipping docker', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento', '--with' => 'mysql'], ['interactive' => false]);
+
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => (new DatabaseCommand())->setProjectPath($this->project)->query());
+
+    expect($status)->toBe(0);
+});
+
+it('fails db:query when the real docker command exits non-zero', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento', '--with' => 'mysql'], ['interactive' => false]);
+
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => (new DatabaseCommand())->setProjectPath($this->project)->query(), exitCode: 1);
+
+    expect($status)->toBe(1);
+});
+
+it('dumps the database to a file when not skipping docker', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento', '--with' => 'mysql'], ['interactive' => false]);
+
+    $destination = $this->project . '/dump.sql';
+
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => (new DatabaseCommand())->setProjectPath($this->project)->dump([$destination]));
+
+    expect($status)->toBe(0)
+        ->and(is_file($destination))->toBeTrue()
+        ->and(file_get_contents($destination))->toContain('fake docker:');
+});
+
+it('reports a failure when the real db:dump command exits non-zero', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento', '--with' => 'mysql'], ['interactive' => false]);
+
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => (new DatabaseCommand())->setProjectPath($this->project)->dump([$this->project . '/dump.sql']), exitCode: 1);
+
+    expect($status)->toBe(1);
+});
+
+it('refuses db:dump when the destination cannot be opened for writing', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento', '--with' => 'mysql'], ['interactive' => false]);
+
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withWarningsSuppressed(fn(): int => withFakeDocker(
+        fn(): int => (new DatabaseCommand())->setProjectPath($this->project)->dump([$this->project . '/no-such-directory/dump.sql']),
+    ));
+
+    expect($status)->toBe(1);
+});
+
+it('imports an SQL file when not skipping docker', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento', '--with' => 'mysql'], ['interactive' => false]);
+
+    $source = $this->project . '/dump.sql';
+    file_put_contents($source, '-- dump');
+
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => (new DatabaseCommand())->setProjectPath($this->project)->import(['dump.sql']));
+
+    expect($status)->toBe(0);
+});
+
+it('reports a failure when the real db:import command exits non-zero', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento', '--with' => 'mysql'], ['interactive' => false]);
+
+    $source = $this->project . '/dump.sql';
+    file_put_contents($source, '-- dump');
+
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $status = withFakeDocker(fn(): int => (new DatabaseCommand())->setProjectPath($this->project)->import(['dump.sql']), exitCode: 1);
+
+    expect($status)->toBe(1);
+});

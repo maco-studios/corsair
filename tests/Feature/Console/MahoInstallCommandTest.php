@@ -89,3 +89,92 @@ it('rejects a short admin password', function (): void {
 
     expect($status)->toBe(1);
 });
+
+it('refuses to install without a compose file', function (): void {
+    $empty = temporaryProjectPath('corsair-maho-install-empty');
+    mkdir($empty, 0755, true);
+
+    $tester = new CommandTester((new MahoInstallCommand())->setProjectPath($empty));
+    $status = $tester->execute([], ['interactive' => false]);
+
+    expect($status)->toBe(1);
+
+    removeDirectoryRecursively($empty);
+});
+
+it('refuses to install on a non-maho compose stack', function (): void {
+    $other = temporaryProjectPath('corsair-maho-install-wrong-platform');
+    mkdir($other, 0755, true);
+
+    $installer = (new InstallCommand())->setProjectPath($other);
+    (new CommandTester($installer))->execute(['--platform' => 'magento'], ['interactive' => false]);
+
+    $tester = new CommandTester((new MahoInstallCommand())->setProjectPath($other));
+    $status = $tester->execute([], ['interactive' => false]);
+
+    expect($status)->toBe(1);
+
+    removeDirectoryRecursively($other);
+});
+
+it('refuses to install without the maho cli', function (): void {
+    unlink($this->project . '/maho');
+
+    $tester = new CommandTester((new MahoInstallCommand())->setProjectPath($this->project));
+    $status = $tester->execute([], ['interactive' => false]);
+
+    expect($status)->toBe(1);
+});
+
+it('installs for real and reports success when not skipping docker', function (): void {
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $tester = new CommandTester((new MahoInstallCommand())->setProjectPath($this->project));
+
+    $status = withFakeDocker(fn(): int => $tester->execute([], ['interactive' => false]));
+
+    expect($status)->toBe(0)
+        ->and($tester->getDisplay())->toContain('MahoCommerce installed.');
+});
+
+it('reports a failure when the real install command exits non-zero', function (): void {
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $tester = new CommandTester((new MahoInstallCommand())->setProjectPath($this->project));
+
+    $status = withFakeDocker(fn(): int => $tester->execute([], ['interactive' => false]), exitCode: 1);
+
+    expect($status)->toBe(1)
+        ->and($tester->getDisplay())->toContain('Maho installation failed.');
+});
+
+it('resolves mariadb as the database host when mysql is not installed', function (): void {
+    $other = temporaryProjectPath('corsair-maho-install-mariadb');
+    mkdir($other, 0755, true);
+
+    $installer = (new InstallCommand())->setProjectPath($other);
+    (new CommandTester($installer))->execute(['--platform' => 'maho', '--with' => 'mariadb'], ['interactive' => false]);
+    file_put_contents($other . '/maho', "#!/usr/bin/env php\n");
+
+    $env = (string) file_get_contents($other . '/.env');
+    $env = (string) preg_replace('/^DB_HOST=.*/m', 'DB_HOST=127.0.0.1', $env);
+    file_put_contents($other . '/.env', $env);
+
+    $tester = new CommandTester((new MahoInstallCommand())->setProjectPath($other));
+    $status = $tester->execute([], ['interactive' => false]);
+
+    expect($status)->toBe(0)
+        ->and($tester->getDisplay())->toContain("'--db_host=mariadb'");
+
+    removeDirectoryRecursively($other);
+});
+
+it('appends a non-default db port to the database host', function (): void {
+    $env = (string) file_get_contents($this->project . '/.env');
+    $env = (string) preg_replace('/^DB_PORT=.*/m', 'DB_PORT=3307', $env);
+    file_put_contents($this->project . '/.env', $env);
+
+    $tester = new CommandTester((new MahoInstallCommand())->setProjectPath($this->project));
+    $status = $tester->execute([], ['interactive' => false]);
+
+    expect($status)->toBe(0)
+        ->and($tester->getDisplay())->toContain("'--db_host=mysql:3307'");
+});

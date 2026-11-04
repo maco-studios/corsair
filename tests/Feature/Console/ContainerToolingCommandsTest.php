@@ -74,6 +74,36 @@ it('forwards composer arguments into the application container', function (): vo
         ->and($process->getOutput())->toContain("'--no-dev'");
 });
 
+it('runs the real shell/npm/composer commands when not skipping docker', function (): void {
+    putenv('CORSAIR_SKIP_DOCKER=0');
+
+    $shellStatus = withFakeDocker(fn(): int => (new ShellCommand())->setProjectPath($this->project)->forward([]));
+    $npmStatus = withFakeDocker(fn(): int => (new NpmCommand())->setProjectPath($this->project)->forward(['install']));
+    $composerStatus = withFakeDocker(fn(): int => (new ComposerCommand())->setProjectPath($this->project)->forward(['install']));
+
+    expect($shellStatus)->toBe(0)
+        ->and($npmStatus)->toBe(0)
+        ->and($composerStatus)->toBe(0);
+});
+
+it('fails shell/npm/composer when the real docker command exits non-zero', function (): void {
+    putenv('CORSAIR_SKIP_DOCKER=0');
+
+    $shellStatus = withFakeDocker(fn(): int => (new ShellCommand())->setProjectPath($this->project)->forward([]), exitCode: 1);
+    $npmStatus = withFakeDocker(fn(): int => (new NpmCommand())->setProjectPath($this->project)->forward(['install']), exitCode: 1);
+    $composerStatus = withFakeDocker(fn(): int => (new ComposerCommand())->setProjectPath($this->project)->forward(['install']), exitCode: 1);
+
+    expect($shellStatus)->toBe(1)
+        ->and($npmStatus)->toBe(1)
+        ->and($composerStatus)->toBe(1);
+});
+
+it('has an inert execute() for shell/npm/composer when Symfony runs them directly', function (): void {
+    expect((new CommandTester(new ShellCommand()))->execute([]))->toBe(0)
+        ->and((new CommandTester(new NpmCommand()))->execute([]))->toBe(0)
+        ->and((new CommandTester(new ComposerCommand()))->execute([]))->toBe(0);
+});
+
 it('refuses to open a shell or run npm/composer before install', function (): void {
     $empty = temporaryProjectPath('corsair-tooling-empty');
     mkdir($empty, 0755, true);

@@ -241,6 +241,45 @@ function withWarningsSuppressed(callable $fn): mixed
 }
 
 /**
+ * Puts a fake `docker` binary at the front of PATH for the duration of $fn,
+ * so code paths that shell out to real `docker`/`docker compose` commands
+ * (building/pulling images, `exec`ing a client, dumping/importing a
+ * database) run a real subprocess — and so get real coverage credit for the
+ * PHP that launches and reads it — without needing an actual Docker daemon
+ * or running containers. The fake just echoes its arguments and exits with
+ * $exitCode, which is enough to exercise both the success and failure
+ * branches of the code calling it.
+ */
+function withFakeDocker(callable $fn, int $exitCode = 0): mixed
+{
+    $dir = temporaryProjectPath('fake-docker-bin');
+    mkdir($dir, 0755, true);
+
+    $script = $dir . DIRECTORY_SEPARATOR . 'docker';
+    file_put_contents($script, "#!/usr/bin/env bash\necho \"fake docker: \$*\"\nexit {$exitCode}\n");
+    chmod($script, 0755);
+
+    // Symfony Process builds its default environment as `$_ENV + getenv()`,
+    // so $_ENV's stale PATH (populated once at process start) would win
+    // over a plain putenv() change — $_ENV has to be updated directly too.
+    $originalPath = (string) getenv('PATH');
+    $newPath = $dir . ':' . $originalPath;
+    putenv('PATH=' . $newPath);
+    $_ENV['PATH'] = $newPath;
+    $_SERVER['PATH'] = $newPath;
+
+    try {
+        return $fn();
+    } finally {
+        putenv('PATH=' . $originalPath);
+        $_ENV['PATH'] = $originalPath;
+        $_SERVER['PATH'] = $originalPath;
+        unlink($script);
+        rmdir($dir);
+    }
+}
+
+/**
  * A hand-rolled recursive delete, not SPL's RecursiveDirectoryIterator:
  * that class follows symlinked directories when deciding whether to
  * recurse, and real-project fixtures have one — composer's local path
