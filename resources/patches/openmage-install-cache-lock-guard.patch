@@ -1,0 +1,20 @@
+--- a/app/code/core/Mage/Core/Model/Config.php
++++ b/app/code/core/Mage/Core/Model/Config.php
+@@ -521,7 +521,7 @@
+      */
+     public function getCacheSaveLock($waitTime = null, $ignoreFailure = false)
+     {
+-        if (!Mage::app()->useCache('config')) {
++        if (!Mage::isInstalled() || !Mage::app()->useCache('config')) {
+             return;
+         }
+         $waitTime = $waitTime ?: (getenv('MAGE_CONFIG_CACHE_LOCK_WAIT') ?: (PHP_SAPI === 'cli' ? 60 : 3));
+@@ -546,7 +546,7 @@
+      */
+     public function releaseCacheSaveLock()
+     {
+-        if (!Mage::app()->useCache('config')) {
++        if (!Mage::isInstalled() || !Mage::app()->useCache('config')) {
+             return;
+         }
+         $connection = Mage::getSingleton('core/resource')->getConnection('core_write');
