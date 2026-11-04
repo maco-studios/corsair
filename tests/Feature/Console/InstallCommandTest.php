@@ -10,6 +10,8 @@
  */
 
 use Corsair\Console\InstallCommand;
+use Corsair\Prompts\Key;
+use Corsair\Prompts\Prompt;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Yaml\Yaml;
 
@@ -290,20 +292,34 @@ it('rejects an invalid php version', function (): void {
 it('asks interactively for services when none are given on a tty', function (): void {
     $command = (new InstallCommand())->setProjectPath($this->project);
     $tester = new CommandTester($command);
+
     // Computing the services question's default value resolves the
     // platform first (it's not yet known from a compose file or
     // composer.json), so that's asked as its own interactive question
-    // ahead of the services one.
-    $tester->setInputs(['magento', 'redis']);
+    // ahead of the services one. The platform select defaults to
+    // "magento" (already highlighted), so a single ENTER accepts it; the
+    // services multiselect then starts with mysql/redis/opensearch
+    // pre-checked — mysql stays checked (a database is required), untick
+    // opensearch, leaving mysql and redis.
+    Prompt::fake([
+        Key::ENTER,
+        Key::DOWN,
+        Key::DOWN,
+        Key::DOWN,
+        Key::DOWN,
+        Key::SPACE,
+        Key::ENTER,
+    ]);
 
-    // See AddCommandTest for why this generates harmless PHP warnings.
-    $status = withWarningsSuppressed(fn(): int => $tester->execute([], ['interactive' => true]));
+    $status = $tester->execute([], ['interactive' => true]);
 
     expect($status)->toBe(0);
 
     $compose = Yaml::parseFile($this->project . '/compose.yaml');
 
-    expect($compose['services']['magento.test']['depends_on'])->toContain('redis');
+    expect($compose['services']['magento.test']['depends_on'])
+        ->toContain('mysql', 'redis')
+        ->not->toContain('opensearch');
 });
 
 it('rejects invalid services', function (): void {

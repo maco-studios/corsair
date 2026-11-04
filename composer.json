@@ -36,6 +36,7 @@
         "ergebnis/composer-normalize": "^2.56",
         "ergebnis/license": "^2.9",
         "friendsofphp/php-cs-fixer": "^3.95",
+        "mockery/mockery": "^1.6",
         "pestphp/pest": "^5.3",
         "rector/rector": "^2.8"
     },

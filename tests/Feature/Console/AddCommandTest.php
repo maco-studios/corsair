@@ -11,6 +11,8 @@
 
 use Corsair\Console\AddCommand;
 use Corsair\Console\InstallCommand;
+use Corsair\Prompts\Key;
+use Corsair\Prompts\Prompt;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Yaml\Yaml;
 
@@ -88,19 +90,66 @@ it('falls back to the platform defaults when no services are given non-interacti
 it('asks interactively for services when none are given on a tty', function (): void {
     $command = (new AddCommand())->setProjectPath($this->project);
     $tester = new CommandTester($command);
-    $tester->setInputs(['redis']);
 
-    // gatherServicesInteractively() passes service *names* as the
-    // ChoiceQuestion default rather than their numeric indices, which
-    // Symfony's question helper only expects for a multiselect default
-    // display — harmless (the command still succeeds), just noisy.
-    $status = withWarningsSuppressed(fn(): int => $tester->execute([], ['interactive' => true]));
+    // The services multiselect starts with the platform defaults
+    // (mysql, redis, opensearch) pre-checked and the cursor on the first
+    // option (mysql). Leave mysql checked (it's required — see the
+    // "requires a database" test below), skip past mariadb and redis,
+    // then untick opensearch before submitting.
+    Prompt::fake([
+        Key::DOWN,
+        Key::DOWN,
+        Key::DOWN,
+        Key::DOWN,
+        Key::SPACE,
+        Key::ENTER,
+    ]);
+
+    $status = $tester->execute([], ['interactive' => true]);
 
     expect($status)->toBe(0);
 
     $compose = Yaml::parseFile($this->project . '/compose.yaml');
 
-    expect($compose['services']['magento.test']['depends_on'])->toContain('redis');
+    // opensearch was never installed, so its absence here proves the
+    // deselect actually registered.
+    expect($compose['services']['magento.test']['depends_on'])
+        ->toContain('redis')
+        ->not->toContain('opensearch');
+});
+
+it('requires a database service before the services multiselect can be submitted', function (): void {
+    $command = (new AddCommand())->setProjectPath($this->project);
+    $tester = new CommandTester($command);
+
+    // Untick mysql and opensearch (leaving only redis), then try to
+    // submit — the validator should reject it and keep the prompt open.
+    // Move back up to mysql, re-tick it, and submit again successfully.
+    Prompt::fake([
+        Key::SPACE,
+        Key::DOWN,
+        Key::DOWN,
+        Key::DOWN,
+        Key::DOWN,
+        Key::SPACE,
+        Key::ENTER,
+        Key::UP,
+        Key::UP,
+        Key::UP,
+        Key::UP,
+        Key::SPACE,
+        Key::ENTER,
+    ]);
+
+    $status = $tester->execute([], ['interactive' => true]);
+
+    expect($status)->toBe(0);
+
+    $compose = Yaml::parseFile($this->project . '/compose.yaml');
+
+    expect($compose['services']['magento.test']['depends_on'])
+        ->toContain('mysql', 'redis')
+        ->not->toContain('opensearch');
 });
 
 it('rejects invalid services given as an argument', function (): void {

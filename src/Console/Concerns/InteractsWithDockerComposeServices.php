@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Corsair\Console\Concerns;
 
-use Symfony\Component\Console\Question\ChoiceQuestion;
+use Corsair\Prompts\Prompts;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 
@@ -70,17 +70,19 @@ trait InteractsWithDockerComposeServices
      */
     protected function gatherServicesInteractively(): array
     {
-        $question = new ChoiceQuestion(
-            'Which services would you like to install?',
-            $this->services,
-            implode(',', $this->defaultServices()),
+        return Prompts::multiselect(
+            label: 'Which services would you like to install?',
+            options: array_combine($this->services, $this->services),
+            default: $this->defaultServices(),
+            hint: 'Use the space bar to select options.',
+            validate: function (array $services): ?string {
+                if (in_array('mysql', $services, true) || in_array('mariadb', $services, true)) {
+                    return null;
+                }
+
+                return 'Select mysql or mariadb — the application needs a database to run.';
+            },
         );
-        $question->setMultiselect(true);
-
-        /** @var list<string> $services */
-        $services = $this->io->askQuestion($question);
-
-        return $services;
     }
 
     /**
@@ -424,14 +426,12 @@ ENV;
             return 'magento';
         }
 
-        $question = new ChoiceQuestion(
-            'Which platform is this application (couldn\'t detect it from composer.json)?',
-            $this->platforms,
-            'magento',
-        );
-
         /** @var string $platform */
-        $platform = $this->io->askQuestion($question);
+        $platform = Prompts::select(
+            label: 'Which platform is this application (couldn\'t detect it from composer.json)?',
+            options: array_combine($this->platforms, $this->platforms),
+            default: 'magento',
+        );
 
         return $platform;
     }

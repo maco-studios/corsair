@@ -17,6 +17,7 @@ Notes:
 
 - `mysql` and `mariadb` both create a database named `${DB_DATABASE}` for user `corsair` / password `password`, and both mount a healthcheck and a `create-testing-database.sh` init script.
 - `--with=none` (or the `none` argument to `corsair:add`) installs no services at all.
+- The interactive services prompt requires at least `mysql` or `mariadb` to be checked before it can be submitted — the application needs a database to run. This only applies to the interactive prompt; `--with=none`/`none` and explicit `--with`/argument lists bypass it.
 - Any of `mysql`, `mariadb`, `redis`, `elasticsearch`, `opensearch`, and `rabbitmq` get a named Docker volume (`corsair-<service>`) for persistence; `mailpit` and `varnish` do not.
 - Services you add are appended to the app service's `depends_on`, and to the scheduler/queue containers' `depends_on` — see [Scheduler and queue containers](../explanation/scheduler-and-queue-containers.md).
 - Forward ports are overridable per project via the matching `FORWARD_*_PORT` environment variable in `.env`; they are not written there automatically.
