@@ -1,0 +1,116 @@
+name: E2E
+
+# The runtime images compile several PHP extensions from source (imagick,
+# redis, ssh2, swoole, xdebug) and are the single biggest cost here — a
+# cold build takes 15-20 minutes. docker/build-push-action with the GHA
+# cache backend persists those layers between runs, so once a Dockerfile is
+# unchanged this drops to well under a minute. That's also why this is
+# split from tests.yml: the smoke job still needs a build (gated to when
+# runtime/console code actually changes), and the real-project matrix is
+# opt-in/scheduled rather than on every push, since even a warm run per
+# platform (scaffold + composer require + install + boot) takes 1-5
+# minutes, and Magento 2's is the heaviest of the three.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+  pull_request:
+    paths:
+      - 'resources/runtimes/**'
+      - 'resources/stubs/**'
+      - 'resources/database/**'
+      - 'src/**'
+      - 'bin/corsair'
+      - 'tests/Feature/E2E/**'
+      - 'tests/Pest.php'
+
+env:
+  COMPOSER_CACHE_DIR: ${{ github.workspace }}/.composer-cache
+
+jobs:
+  smoke:
+    name: Smoke test (fake fixture, no real codebase)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.COMPOSER_CACHE_DIR }}
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - run: composer install --no-interaction --prefer-dist
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Warm the PHP 8.3 runtime image cache
+        uses: docker/build-push-action@v5
+        with:
+          context: resources/runtimes/8.3
+          tags: corsair-8.3/app:latest
+          load: true
+          cache-from: type=gha,scope=runtime-8.3
+          cache-to: type=gha,mode=max,scope=runtime-8.3
+
+      - run: CORSAIR_E2E=1 vendor/bin/pest tests/Feature/E2E/MagentoStackTest.php --group=e2e
+
+  real-project:
+    name: Real ${{ matrix.platform }} project
+    needs: smoke
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: maho
+            test: MahoRealProjectTest.php
+            php: '8.5'
+          - platform: openmage
+            test: OpenMageRealProjectTest.php
+            php: '8.3'
+          - platform: magento2
+            test: MagentoRealProjectTest.php
+            php: '8.3'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.COMPOSER_CACHE_DIR }}
+          key: composer-${{ hashFiles('composer.lock') }}-${{ matrix.platform }}
+
+      - run: composer install --no-interaction --prefer-dist
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Warm the PHP ${{ matrix.php }} runtime image cache
+        uses: docker/build-push-action@v5
+        with:
+          context: resources/runtimes/${{ matrix.php }}
+          tags: corsair-${{ matrix.php }}/app:latest
+          load: true
+          cache-from: type=gha,scope=runtime-${{ matrix.php }}
+          cache-to: type=gha,mode=max,scope=runtime-${{ matrix.php }}
+
+      # magento2's test skips itself if these are blank — only the
+      # magento2 matrix leg needs them, but harmless to set everywhere.
+      - name: Write Marketplace keys for the Magento 2 leg
+        if: matrix.platform == 'magento2'
+        run: |
+          {
+            echo "ADOBE_COMMERCE_PUBLIC_KEY=${{ secrets.ADOBE_COMMERCE_PUBLIC_KEY }}"
+            echo "ADOBE_COMMERCE_PRIVATE_KEY=${{ secrets.ADOBE_COMMERCE_PRIVATE_KEY }}"
+          } >> .env
+
+      - run: CORSAIR_E2E=1 vendor/bin/pest tests/Feature/E2E/${{ matrix.test }} --group=e2e
