@@ -1,0 +1,38 @@
+name: Feature request
+description: Suggest an improvement or a new capability for Corsair.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What are you trying to do that Corsair doesn't support today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would you expect this to work? A CLI flag, a new service stub, a config option, etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds you're using today, or other approaches you considered.
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Affected platform(s)
+      multiple: true
+      options:
+        - Magento 1
+        - Magento 2
+        - OpenMage
+        - Mage-OS
+        - MahoCommerce
+        - All / not platform-specific

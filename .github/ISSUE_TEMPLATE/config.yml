@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Getting started help
+    url: https://github.com/maco-studios/corsair/blob/main/docs/tutorials/getting-started.md
+    about: Start here if you're not sure your issue is a bug — most setup questions are already covered in the tutorial.
+  - name: Platform support matrix
+    url: https://github.com/maco-studios/corsair/blob/main/docs/reference/platforms.md
+    about: Check which PHP, database, and search engine combinations are supported before filing a compatibility issue.

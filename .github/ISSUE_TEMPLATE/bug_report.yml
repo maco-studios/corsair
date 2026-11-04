@@ -1,0 +1,92 @@
+name: Bug report
+description: Something in Corsair isn't working as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Before filing, please check the
+        [platform support matrix](https://github.com/maco-studios/corsair/blob/main/docs/reference/platforms.md) —
+        a lot of "bugs" turn out to be an unsupported PHP/database/search combination.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, and what you expected to happen instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The exact commands you ran, in order.
+      placeholder: |
+        1. vendor/bin/corsair corsair:install --platform magento2
+        2. vendor/bin/corsair up -d
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Output of `vendor/bin/corsair logs` or the failing command. This is rendered as a code block, no need for backticks.
+      render: shell
+
+  - type: input
+    id: corsair-version
+    attributes:
+      label: Corsair version
+      placeholder: "run: composer show maco-studios/corsair"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Target platform
+      options:
+        - Magento 1
+        - Magento 2
+        - OpenMage
+        - Mage-OS
+        - MahoCommerce
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP version (project's, inside the container)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: host-os
+    attributes:
+      label: Host OS
+      options:
+        - Linux
+        - macOS
+        - Windows (WSL2)
+    validations:
+      required: true
+
+  - type: input
+    id: docker-version
+    attributes:
+      label: Docker / Docker Compose version
+      placeholder: "docker --version && docker compose version"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: no-secrets
+    attributes:
+      label: Checklist
+      options:
+        - label: I did not include credentials, tokens, or other secrets in this report.
+          required: true
