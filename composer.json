@@ -49,6 +49,7 @@
         "post-update-cmd": [
             "@composer normalize"
         ],
-        "test": "pest"
+        "test": "pest --exclude-group=e2e",
+        "test:e2e": "CORSAIR_E2E=1 pest --group=e2e"
     }
 }
