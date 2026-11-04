@@ -120,4 +120,62 @@ final class TestComposeCommand extends Command
     {
         return $this->packagePath($path);
     }
+
+    public function callStackHasService(string $service): bool
+    {
+        return $this->stackHasService($service);
+    }
+
+    public function callDatabaseEngine(): ?string
+    {
+        return $this->databaseEngine();
+    }
+
+    public function callContainerUser(): string
+    {
+        return $this->containerUser();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function callEnvVariables(): array
+    {
+        return $this->envVariables();
+    }
+
+    /**
+     * @param  array<string, mixed>  $service
+     * @return array<string, mixed>
+     */
+    public function callSetServiceEnvironment(array $service, string $key, string $value): array
+    {
+        $this->setServiceEnvironment($service, $key, $value);
+
+        return $service;
+    }
+
+    /**
+     * @param  list<string>  $services
+     */
+    public function callBuildDockerCompose(array $services): void
+    {
+        $this->buildDockerCompose($services);
+    }
+
+    /**
+     * @param  list<string>  $services
+     */
+    public function callReplaceEnvVariables(array $services): void
+    {
+        $this->replaceEnvVariables($services);
+    }
+
+    /**
+     * @param  list<string>  $services
+     */
+    public function callPrepareInstallation(array $services): void
+    {
+        $this->prepareInstallation($services);
+    }
 }

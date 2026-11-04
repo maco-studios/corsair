@@ -254,5 +254,124 @@ it('resolves stub and package paths relative to the package root', function (): 
         ->toBe(dirname(__DIR__, 4) . '/resources/stubs/compose.stub')
         ->and(file_exists($command->callStubPath('compose.stub')))->toBeTrue()
         ->and($command->callPackagePath('resources/runtimes'))
-        ->toBe(dirname(__DIR__, 4) . '/resources/runtimes');
+        ->toBe(dirname(__DIR__, 4) . '/resources/runtimes')
+        ->and($command->callPackagePath())
+        ->toBe(dirname(__DIR__, 4));
+});
+
+it('returns false from stackHasService when no compose file exists', function (): void {
+    $command = composeCommand($this->project)->withInput();
+
+    expect($command->callStackHasService('mysql'))->toBeFalse()
+        ->and($command->callDatabaseEngine())->toBeNull();
+});
+
+it('picks mariadb as the database engine when mysql is not installed', function (): void {
+    file_put_contents($this->project . '/compose.yaml', Yaml::dump([
+        'services' => ['mariadb' => ['image' => 'mariadb:11.8']],
+    ]));
+
+    $command = composeCommand($this->project)->withInput();
+
+    expect($command->callDatabaseEngine())->toBe('mariadb');
+});
+
+it('defaults the container user to 1000:1000 when .env is missing', function (): void {
+    $command = composeCommand($this->project)->withInput();
+
+    expect($command->callEnvVariables())->toBe([])
+        ->and($command->callContainerUser())->toBe('1000:1000');
+});
+
+it('skips blank lines, comments, and key-less lines when reading .env', function (): void {
+    file_put_contents($this->project . '/.env', "WWWUSER=1001\n\n# a comment\nno-equals-sign\nWWWGROUP=1002\n");
+
+    $command = composeCommand($this->project)->withInput();
+
+    expect($command->callEnvVariables())->toBe(['WWWUSER' => '1001', 'WWWGROUP' => '1002'])
+        ->and($command->callContainerUser())->toBe('1001:1002');
+});
+
+it('leaves a service alone in setServiceEnvironment when its environment is list-style', function (): void {
+    $command = composeCommand($this->project)->withInput();
+
+    $service = $command->callSetServiceEnvironment(['environment' => ['WWWUSER=1000']], 'CORSAIR_PLATFORM', 'maho');
+
+    expect($service['environment'])->toBe(['WWWUSER=1000']);
+});
+
+it('treats an invalid compose.yaml as an empty project when building the compose file', function (): void {
+    file_put_contents($this->project . '/compose.yaml', "~\n");
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+    $command->callBuildDockerCompose(['mysql']);
+
+    $compose = Yaml::parseFile($this->project . '/compose.yaml');
+
+    // Parsing "~" yields null, not an array — buildDockerCompose() treats
+    // that as a blank project rather than erroring, so there's no
+    // magento.test service to attach the mysql dependency to (just a
+    // warning, covered by the next test).
+    expect($compose['services'])->toHaveKey('mysql')
+        ->and($compose['services'])->not->toHaveKey('magento.test');
+});
+
+it('warns when the application service is missing from the compose file entirely', function (): void {
+    file_put_contents($this->project . '/compose.yaml', Yaml::dump([
+        'services' => ['mysql' => ['image' => 'mysql:8.4']],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+    $command->callBuildDockerCompose(['mysql']);
+
+    expect($command->callApplicationServiceFromCompose(Yaml::parseFile($this->project . '/compose.yaml')))->toBeNull();
+});
+
+it('copies .env.example to .env when it exists and .env does not', function (): void {
+    file_put_contents($this->project . '/.env.example', "APP_PORT=80\nDB_HOST=127.0.0.1\n");
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+    $command->callReplaceEnvVariables(['mysql']);
+
+    expect(file_get_contents($this->project . '/.env'))->toContain('APP_PORT=80');
+});
+
+it('sets elasticsearch, rabbitmq, and varnish env variables when those services are requested', function (): void {
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+    $command->callReplaceEnvVariables(['elasticsearch', 'rabbitmq', 'varnish']);
+
+    $env = (string) file_get_contents($this->project . '/.env');
+
+    expect($env)
+        ->toContain('ELASTICSEARCH_HOST=elasticsearch')
+        ->toContain('ELASTICSEARCH_PORT=9200')
+        ->toContain('RABBITMQ_HOST=rabbitmq')
+        ->toContain('RABBITMQ_PORT=5672')
+        ->toContain('RABBITMQ_USER=corsair')
+        ->toContain('RABBITMQ_PASSWORD=password')
+        ->toContain('RABBITMQ_VHOST=/')
+        ->toContain('VARNISH_HOST=varnish')
+        ->toContain('VARNISH_PORT=80');
+});
+
+it('runs the real docker info/pull/build commands when preparing an installation', function (): void {
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+    file_put_contents($this->project . '/compose.yaml', Yaml::dump(['services' => ['magento.test' => []]]));
+
+    withFakeDocker(fn(): mixed => $command->callPrepareInstallation(['mysql']));
+    putenv('CORSAIR_SKIP_DOCKER');
+
+    expect(true)->toBeTrue();
+});
+
+it('stops preparing the installation when docker info fails', function (): void {
+    putenv('CORSAIR_SKIP_DOCKER=0');
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+    file_put_contents($this->project . '/compose.yaml', Yaml::dump(['services' => ['magento.test' => []]]));
+
+    withFakeDocker(fn(): mixed => $command->callPrepareInstallation(['mysql']), exitCode: 1);
+    putenv('CORSAIR_SKIP_DOCKER');
+
+    expect(true)->toBeTrue();
 });

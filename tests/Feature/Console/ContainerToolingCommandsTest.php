@@ -46,6 +46,14 @@ it('opens a shell in the application container', function (): void {
     expect($status)->toBe(0);
 });
 
+it('forwards npm and composer arguments in-process when skipping docker', function (): void {
+    $npmStatus = (new NpmCommand())->setProjectPath($this->project)->forward(['install']);
+    $composerStatus = (new ComposerCommand())->setProjectPath($this->project)->forward(['install']);
+
+    expect($npmStatus)->toBe(0)
+        ->and($composerStatus)->toBe(0);
+});
+
 it('forwards npm arguments into the application container', function (): void {
     $process = new Process(
         [PHP_BINARY, dirname(__DIR__, 3) . '/bin/corsair', 'npm', 'install'],

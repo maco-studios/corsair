@@ -256,7 +256,7 @@ function withFakeDocker(callable $fn, int $exitCode = 0): mixed
     mkdir($dir, 0755, true);
 
     $script = $dir . DIRECTORY_SEPARATOR . 'docker';
-    file_put_contents($script, "#!/usr/bin/env bash\necho \"fake docker: \$*\"\nexit {$exitCode}\n");
+    file_put_contents($script, "#!/usr/bin/env bash\necho \"fake docker: \$*\"\necho \"fake docker stderr: \$*\" >&2\nexit {$exitCode}\n");
     chmod($script, 0755);
 
     // Symfony Process builds its default environment as `$_ENV + getenv()`,

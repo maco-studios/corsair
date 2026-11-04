@@ -105,6 +105,20 @@ it('adds mysql after a bare install and lets db:query find it', function (): voi
     expect($status)->toBe(0);
 });
 
+it('prints db:dump and db:import commands in-process when skipping docker', function (): void {
+    $installer = (new InstallCommand())->setProjectPath($this->project);
+    (new CommandTester($installer))->execute(['--platform' => 'magento', '--with' => 'mysql'], ['interactive' => false]);
+
+    $source = $this->project . '/dump.sql';
+    file_put_contents($source, '-- dump');
+
+    $dumpStatus = (new DatabaseCommand())->setProjectPath($this->project)->dump([$this->project . '/dump-output.sql']);
+    $importStatus = (new DatabaseCommand())->setProjectPath($this->project)->import(['dump.sql']);
+
+    expect($dumpStatus)->toBe(0)
+        ->and($importStatus)->toBe(0);
+});
+
 it('refuses db:import when no source file argument is given at all', function (): void {
     $installer = (new InstallCommand())->setProjectPath($this->project);
     (new CommandTester($installer))->execute(['--platform' => 'magento', '--with' => 'mysql'], ['interactive' => false]);
