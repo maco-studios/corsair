@@ -13,6 +13,7 @@
   <img src=".github/assets/img/badges/platform-openmage.svg" alt="OpenMage">
   <img src=".github/assets/img/badges/platform-mageos.svg" alt="Mage-OS">
   <img src=".github/assets/img/badges/platform-maho.svg" alt="MahoCommerce">
+  <a href="https://buymeacoffee.com/macosauresx"><img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee"></a>
 </p>
 
 <p align="center"><strong>Docker-powered local dev for Magento 1, Magento 2, OpenMage, Mage-OS, and MahoCommerce.</strong></p>
@@ -67,6 +68,10 @@ Full docs live in [`docs/`](docs/README.md):
 ## Contributing
 
 Bug reports and compatibility improvements are welcome. Include your host OS, Docker/Compose versions, Magento version, and PHP version — never store credentials or other secrets.
+
+## Support
+
+If Corsair saves you time, consider [buying me a coffee](https://buymeacoffee.com/macosauresx).
 
 ## License
 
