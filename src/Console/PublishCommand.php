@@ -20,7 +20,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'corsair:publish', description: 'Publish the Corsair Docker files')]
+#[AsCommand(name: 'publish', description: 'Publish the Corsair Docker files')]
 class PublishCommand extends Command
 {
     use Concerns\InteractsWithDockerComposeServices;
@@ -35,7 +35,7 @@ class PublishCommand extends Command
         $composePath = $this->composePath();
 
         if (! file_exists($composePath)) {
-            $this->error('No Compose file found. Run `corsair:install` first.');
+            $this->error('No Compose file found. Run `vendor/bin/corsair install` first.');
 
             return self::FAILURE;
         }

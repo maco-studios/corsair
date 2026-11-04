@@ -5,12 +5,12 @@ By default, `compose.yaml` builds the app image from the files inside `vendor/ma
 To customize them — a different `php.ini` setting, an extra PHP extension, a tweaked Nginx rule — publish them into your own project first:
 
 ```bash
-vendor/bin/corsair corsair:publish
+vendor/bin/corsair publish
 ```
 
 This copies `resources/runtimes` and `resources/database` from the package into `./docker` in your project, and rewrites `compose.yaml`'s `build.context` paths (and the database init-script volume mounts) to point at `./docker/...` instead of `./vendor/maco-studios/corsair/resources/...`.
 
-`corsair:publish` requires `compose.yaml` to already exist — run `corsair:install` first. After publishing, edit the files under `./docker` directly and rebuild:
+`publish` requires `compose.yaml` to already exist — run `install` first. After publishing, edit the files under `./docker` directly and rebuild:
 
 ```bash
 vendor/bin/corsair build

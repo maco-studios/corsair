@@ -1,9 +1,9 @@
 # How to use a VS Code dev container
 
-Pass `--devcontainer` to `corsair:install` to generate a `.devcontainer/devcontainer.json` alongside `compose.yaml`:
+Pass `--devcontainer` to `install` to generate a `.devcontainer/devcontainer.json` alongside `compose.yaml`:
 
 ```bash
-vendor/bin/corsair corsair:install --devcontainer
+vendor/bin/corsair install --devcontainer
 ```
 
 This writes a dev container configuration that:

@@ -20,11 +20,11 @@ Corsair is [Laravel Sail](https://github.com/laravel/sail) for the Magento ecosy
 
 ```bash
 composer require maco-studios/corsair --dev
-vendor/bin/corsair corsair:install
+vendor/bin/corsair install
 vendor/bin/corsair up -d
 ```
 
-`corsair:install` detects your platform from `composer.json`, writes `compose.yaml` and `.env`, and builds the application image. From there, `vendor/bin/corsair` aliases `docker compose`:
+`vendor/bin/corsair install` detects your platform from `composer.json`, writes `compose.yaml` and `.env`, and builds the application image. From there, `vendor/bin/corsair` aliases `docker compose`:
 
 ```bash
 vendor/bin/corsair ps        # inspect running services

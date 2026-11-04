@@ -37,7 +37,7 @@ class NpmCommand extends Command
         $this->ensureIo();
 
         if (! is_file($this->composePath())) {
-            $this->error('No Compose file found. Run `corsair:install` first.');
+            $this->error('No Compose file found. Run `vendor/bin/corsair install` first.');
 
             return self::FAILURE;
         }

@@ -4,7 +4,7 @@
 
 ```bash
 composer require maco-studios/corsair --dev
-vendor/bin/corsair corsair:install --platform=mageos
+vendor/bin/corsair install --platform=mageos
 vendor/bin/corsair up -d
 ```
 
@@ -17,4 +17,4 @@ vendor/bin/corsair magento cache:flush
 vendor/bin/corsair magento indexer:reindex
 ```
 
-See the [CLI reference](../reference/cli-commands.md) for every `corsair:install` option, and [Services](../reference/services.md) for the full list of services you can add with `--with`.
+See the [CLI reference](../reference/cli-commands.md) for every `install` option, and [Services](../reference/services.md) for the full list of services you can add with `--with`.

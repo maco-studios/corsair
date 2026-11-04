@@ -18,7 +18,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'corsair:add', description: 'Add a service to an existing Corsair installation')]
+#[AsCommand(name: 'add', description: 'Add a service to an existing Corsair installation')]
 class AddCommand extends Command
 {
     use Concerns\InteractsWithDockerComposeServices;

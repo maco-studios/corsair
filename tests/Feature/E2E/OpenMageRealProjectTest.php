@@ -104,7 +104,7 @@ it('scaffolds, installs, and boots a real OpenMage project through corsair', fun
     expect(is_file($binary))->toBeTrue('composer require did not install vendor/bin/corsair');
     expect(is_file($this->project . '/install.php'))->toBeTrue('OpenMage did not install into the project root (check extra.magento-root-dir)');
 
-    $install = new Process([PHP_BINARY, $binary, 'corsair:install', '--platform=openmage', '--with=mysql,redis', '--php=8.3'], $this->project);
+    $install = new Process([PHP_BINARY, $binary, 'install', '--platform=openmage', '--with=mysql,redis', '--php=8.3'], $this->project);
     $install->setTimeout(1800);
     $install->run();
 

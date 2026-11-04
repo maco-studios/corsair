@@ -81,7 +81,7 @@ it('scaffolds, installs, and boots a real Magento 2 project through corsair', fu
     // PHP >= 8.5 — composer bakes that requirement into
     // vendor/composer/platform_check.php at create-project time (which ran
     // under the host's own PHP), so the container's runtime must match.
-    $install = new Process([PHP_BINARY, $binary, 'corsair:install', '--platform=magento', '--with=mysql,redis,opensearch', '--php=8.5'], $this->project);
+    $install = new Process([PHP_BINARY, $binary, 'install', '--platform=magento', '--with=mysql,redis,opensearch', '--php=8.5'], $this->project);
     $install->setTimeout(1800);
     $install->run();
 

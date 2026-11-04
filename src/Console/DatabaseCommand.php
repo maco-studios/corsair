@@ -183,7 +183,7 @@ class DatabaseCommand extends Command
     private function requireDatabaseEngine(): ?string
     {
         if (! is_file($this->composePath())) {
-            $this->error('No Compose file found. Run `corsair:install` first.');
+            $this->error('No Compose file found. Run `vendor/bin/corsair install` first.');
 
             return null;
         }
@@ -191,7 +191,7 @@ class DatabaseCommand extends Command
         $engine = $this->databaseEngine();
 
         if ($engine === null) {
-            $this->error('No mysql or mariadb service is installed. Run `corsair:add mysql` (or `corsair:add mariadb`) first.');
+            $this->error('No mysql or mariadb service is installed. Run `vendor/bin/corsair add mysql` (or `vendor/bin/corsair add mariadb`) first.');
 
             return null;
         }

@@ -52,7 +52,7 @@ class MahoCommand extends Command
         }
 
         if ($this->applicationServiceName() !== 'maho.test') {
-            $this->error('Couldn\'t find the maho.test service. Run `corsair:install --platform=maho` first.');
+            $this->error('Couldn\'t find the maho.test service. Run `vendor/bin/corsair install --platform=maho` first.');
 
             return self::FAILURE;
         }

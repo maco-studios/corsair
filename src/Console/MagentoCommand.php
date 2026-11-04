@@ -52,7 +52,7 @@ class MagentoCommand extends Command
         }
 
         if (! in_array($this->applicationServiceName(), ['magento.test', 'mageos.test'], true)) {
-            $this->error('Couldn\'t find the magento.test or mageos.test service. Run `corsair:install` first.');
+            $this->error('Couldn\'t find the magento.test or mageos.test service. Run `vendor/bin/corsair install` first.');
 
             return self::FAILURE;
         }

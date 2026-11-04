@@ -4,7 +4,7 @@ From the Magento 1 project root:
 
 ```bash
 composer require maco-studios/corsair --dev
-vendor/bin/corsair corsair:install --platform=magento
+vendor/bin/corsair install --platform=magento
 vendor/bin/corsair up -d
 ```
 
@@ -20,4 +20,4 @@ php shell/indexer.php reindexall
 docker compose exec magento.test php shell/indexer.php reindexall
 ```
 
-See the [CLI reference](../reference/cli-commands.md) for every `corsair:install` option, and [Services](../reference/services.md) for the database/cache/search services you can add with `--with`.
+See the [CLI reference](../reference/cli-commands.md) for every `install` option, and [Services](../reference/services.md) for the database/cache/search services you can add with `--with`.

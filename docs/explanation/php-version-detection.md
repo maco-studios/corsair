@@ -1,6 +1,6 @@
 # How PHP version detection works
 
-`corsair:install` resolves which PHP runtime image to use, in this order:
+`install` resolves which PHP runtime image to use, in this order:
 
 1. **The `--php` option**, when it's set.
 2. **`composer.json`**, by checking `config.platform.php` (an explicit platform override) and

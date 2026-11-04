@@ -23,7 +23,7 @@ body:
       label: Steps to reproduce
       description: The exact commands you ran, in order.
       placeholder: |
-        1. vendor/bin/corsair corsair:install --platform magento2
+        1. vendor/bin/corsair install --platform magento2
         2. vendor/bin/corsair up -d
         3. ...
     validations:

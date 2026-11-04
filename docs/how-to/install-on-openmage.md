@@ -4,11 +4,11 @@
 
 ```bash
 composer require maco-studios/corsair --dev
-vendor/bin/corsair corsair:install --platform=openmage
+vendor/bin/corsair install --platform=openmage
 vendor/bin/corsair up -d
 ```
 
-Corsair detects `openmage` automatically from the `openmage/magento-lts` package in `composer.json` when `--platform` is omitted. Passing a `--php` version earlier than `8.1` makes `corsair:install` fail outright.
+Corsair detects `openmage` automatically from the `openmage/magento-lts` package in `composer.json` when `--platform` is omitted. Passing a `--php` version earlier than `8.1` makes `install` fail outright.
 
 The web server uses the project root as the document root (OpenMage's classic layout), and only `index.php`, `api.php`, and `cron.php` are executed through PHP — every other path under `app/`, `includes/`, `lib/`, `pkginfo/`, and `shell/` is denied at the web server.
 
@@ -45,4 +45,4 @@ composer require "openmage/magento-lts:^20.0.0"
 
 Corsair ships that patch at `resources/patches/openmage-install-cache-lock-guard.patch`. It only needs to be in place for the initial `composer require`/`install.php` run — once `app/etc/local.xml` exists, the bug can't trigger again (that's exactly what `Mage::isInstalled()` checks).
 
-See the [CLI reference](../reference/cli-commands.md) for every `corsair:install` option.
+See the [CLI reference](../reference/cli-commands.md) for every `install` option.

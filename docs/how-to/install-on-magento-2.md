@@ -4,7 +4,7 @@ From the Magento 2 project root:
 
 ```bash
 composer require maco-studios/corsair --dev
-vendor/bin/corsair corsair:install
+vendor/bin/corsair install
 vendor/bin/corsair up -d
 ```
 
@@ -20,4 +20,4 @@ vendor/bin/corsair magento setup:upgrade
 
 That's equivalent to `docker compose exec magento.test php bin/magento <args>`, if you'd rather run it directly.
 
-See the [CLI reference](../reference/cli-commands.md) for every `corsair:install` option, and [Services](../reference/services.md) for the full list of services you can add with `--with`.
+See the [CLI reference](../reference/cli-commands.md) for every `install` option, and [Services](../reference/services.md) for the full list of services you can add with `--with`.
