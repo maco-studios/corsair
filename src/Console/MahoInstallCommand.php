@@ -17,7 +17,6 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Yaml\Yaml;
 
 #[AsCommand(name: 'maho:install', description: 'Install MahoCommerce with the database credentials from .env')]
 class MahoInstallCommand extends Command
@@ -149,33 +148,6 @@ XML);
     }
 
     /**
-     * @return array<string, string>
-     */
-    private function envVariables(): array
-    {
-        $path = $this->basePath('.env');
-
-        if (! is_file($path)) {
-            return [];
-        }
-
-        $variables = [];
-
-        foreach (file($path, FILE_IGNORE_NEW_LINES) ?: [] as $line) {
-            $line = trim($line);
-
-            if ($line === '' || str_starts_with($line, '#') || ! str_contains($line, '=')) {
-                continue;
-            }
-
-            [$key, $value] = explode('=', $line, 2);
-            $variables[$key] = trim($value, " \t\"'");
-        }
-
-        return $variables;
-    }
-
-    /**
      * @param  array<string, string>  $env
      */
     private function databaseHost(array $env): string
@@ -208,18 +180,5 @@ XML);
         }
 
         return str_ends_with($url, '/') ? $url : $url . '/';
-    }
-
-    private function stackHasService(string $service): bool
-    {
-        if (! is_file($this->composePath())) {
-            return false;
-        }
-
-        $compose = Yaml::parseFile($this->composePath());
-
-        return is_array($compose)
-            && is_array($compose['services'] ?? null)
-            && array_key_exists($service, $compose['services']);
     }
 }

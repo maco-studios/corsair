@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace Corsair\Console;
 
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -79,5 +81,20 @@ abstract class Command extends SymfonyCommand
     protected function error(string $message): void
     {
         $this->io->error($message);
+    }
+
+    /**
+     * Sets up input/output/io when the command is used directly (via
+     * `forward()`) instead of through the Symfony Console application.
+     */
+    protected function ensureIo(): void
+    {
+        if (isset($this->io)) {
+            return;
+        }
+
+        $this->input = new ArrayInput([]);
+        $this->output = new ConsoleOutput();
+        $this->io = new SymfonyStyle($this->input, $this->output);
     }
 }

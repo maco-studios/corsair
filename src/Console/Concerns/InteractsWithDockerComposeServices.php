@@ -584,13 +584,72 @@ ENV;
     /**
      * @param  list<string>  $arguments
      */
-    protected function dockerComposeExec(array $arguments): string
+    protected function dockerComposeExec(array $arguments, ?string $service = null, bool $disableTty = false): string
     {
         return sprintf(
-            'docker compose exec %s %s',
-            escapeshellarg($this->applicationServiceName()),
+            'docker compose exec %s%s %s',
+            $disableTty ? '-T ' : '',
+            escapeshellarg($service ?? $this->applicationServiceName()),
             implode(' ', array_map('escapeshellarg', $arguments)),
         );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function envVariables(): array
+    {
+        $path = $this->basePath('.env');
+
+        if (! is_file($path)) {
+            return [];
+        }
+
+        $variables = [];
+
+        foreach (file($path, FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+            $line = trim($line);
+
+            if ($line === '' || str_starts_with($line, '#') || ! str_contains($line, '=')) {
+                continue;
+            }
+
+            [$key, $value] = explode('=', $line, 2);
+            $variables[$key] = trim($value, " \t\"'");
+        }
+
+        return $variables;
+    }
+
+    protected function stackHasService(string $service): bool
+    {
+        if (! is_file($this->composePath())) {
+            return false;
+        }
+
+        $compose = Yaml::parseFile($this->composePath());
+
+        return is_array($compose)
+            && is_array($compose['services'] ?? null)
+            && array_key_exists($service, $compose['services']);
+    }
+
+    /**
+     * The installed MySQL-compatible database service, if any. `mysql` wins
+     * when both are present, matching how `maho:install`'s databaseHost()
+     * already breaks the tie.
+     */
+    protected function databaseEngine(): ?string
+    {
+        if ($this->stackHasService('mysql')) {
+            return 'mysql';
+        }
+
+        if ($this->stackHasService('mariadb')) {
+            return 'mariadb';
+        }
+
+        return null;
     }
 
     protected function environmentValue(mixed $environment, string $key): ?string

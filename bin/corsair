@@ -13,11 +13,17 @@ declare(strict_types=1);
  */
 
 use Corsair\Console\AddCommand;
+use Corsair\Console\Application;
+use Corsair\Console\ComposerCommand;
+use Corsair\Console\DatabaseCommand;
+use Corsair\Console\DockerComposeCommand;
 use Corsair\Console\InstallCommand;
+use Corsair\Console\MagentoCommand;
 use Corsair\Console\MahoCommand;
 use Corsair\Console\MahoInstallCommand;
+use Corsair\Console\NpmCommand;
 use Corsair\Console\PublishCommand;
-use Symfony\Component\Console\Application;
+use Corsair\Console\ShellCommand;
 
 $autoloadCandidates = [
     dirname(__DIR__) . '/vendor/autoload.php',
@@ -41,9 +47,39 @@ if ($autoload === null) {
 
 require $autoload;
 
-if (($argv[1] ?? null) === 'maho') {
-    $command = (new MahoCommand())->setProjectPath(getcwd() ?: '.');
-    exit($command->forward(array_slice($argv, 2)));
+$cwd = getcwd() ?: '.';
+$firstArgument = $argv[1] ?? null;
+$rest = array_slice($argv, 2);
+
+// Commands that proxy straight into the application container or a service
+// container, the same way `vendor/bin/sail` offers `sail shell`, `sail npm`,
+// `sail composer`, and friends for Laravel.
+$forwarders = [
+    'maho' => static fn (array $arguments): int => (new MahoCommand())->setProjectPath($cwd)->forward($arguments),
+    'magento' => static fn (array $arguments): int => (new MagentoCommand())->setProjectPath($cwd)->forward($arguments),
+    'shell' => static fn (array $arguments): int => (new ShellCommand())->setProjectPath($cwd)->forward($arguments),
+    'npm' => static fn (array $arguments): int => (new NpmCommand())->setProjectPath($cwd)->forward($arguments),
+    'composer' => static fn (array $arguments): int => (new ComposerCommand())->setProjectPath($cwd)->forward($arguments),
+    'db:query' => static fn (array $arguments): int => (new DatabaseCommand())->setProjectPath($cwd)->query(),
+    'db:dump' => static fn (array $arguments): int => (new DatabaseCommand())->setProjectPath($cwd)->dump($arguments),
+    'db:import' => static fn (array $arguments): int => (new DatabaseCommand())->setProjectPath($cwd)->import($arguments),
+];
+
+if ($firstArgument !== null && isset($forwarders[$firstArgument])) {
+    exit($forwarders[$firstArgument]($rest));
+}
+
+$corsairCommands = array_merge(
+    ['corsair:install', 'corsair:add', 'corsair:publish', 'maho:install', 'list', 'help'],
+    array_keys($forwarders),
+);
+
+// Anything else is forwarded to `docker compose` as-is, the same way
+// `vendor/bin/sail` aliases `docker-compose` for Laravel. This is what makes
+// `vendor/bin/corsair up -d` work.
+if ($firstArgument !== null && ! str_starts_with($firstArgument, '-') && ! in_array($firstArgument, $corsairCommands, true)) {
+    $command = (new DockerComposeCommand())->setProjectPath($cwd);
+    exit($command->forward(array_slice($argv, 1)));
 }
 
 $application = new Application('Corsair', '0.1.0');
@@ -53,5 +89,6 @@ $application->addCommands([
     new PublishCommand(),
     new MahoCommand(),
     new MahoInstallCommand(),
+    new MagentoCommand(),
 ]);
 $application->run();

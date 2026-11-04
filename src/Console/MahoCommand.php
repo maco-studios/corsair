@@ -14,12 +14,9 @@ declare(strict_types=1);
 namespace Corsair\Console;
 
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(name: 'maho', description: 'Run the Maho CLI inside the application container')]
 class MahoCommand extends Command
@@ -69,16 +66,5 @@ class MahoCommand extends Command
         }
 
         return $this->runCommands([$command]) === 0 ? self::SUCCESS : self::FAILURE;
-    }
-
-    private function ensureIo(): void
-    {
-        if (isset($this->io)) {
-            return;
-        }
-
-        $this->input = new ArrayInput([]);
-        $this->output = new ConsoleOutput();
-        $this->io = new SymfonyStyle($this->input, $this->output);
     }
 }
