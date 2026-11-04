@@ -116,6 +116,7 @@ trait InteractsWithDockerComposeServices
                 $services,
             )));
             $this->setServiceEnvironment($compose['services'][$appService], 'CORSAIR_PLATFORM', $this->platform());
+            $this->ensureSchedulerServices($compose, $appService, $services);
         }
 
         foreach ($services as $service) {
@@ -490,6 +491,79 @@ ENV;
         }
 
         return null;
+    }
+
+    /**
+     * The cron/queue loops Corsair runs as the CMD of their own dedicated
+     * containers, keyed by the service name. start-container execs this
+     * command as-is (dropping privileges to WWWUSER when needed), so no
+     * extra script has to be baked into the image for it.
+     *
+     * @return array<string, string>
+     */
+    protected function schedulerProcesses(): array
+    {
+        return match ($this->platform()) {
+            'maho' => [
+                'scheduler' => 'while true; do '
+                    . 'if [ -f ./maho ]; then php ./maho cron:run default || true; php ./maho cron:run always || true; fi; '
+                    . 'sleep 60; '
+                    . 'done',
+                'queue' => 'while true; do '
+                    . 'if [ -f ./maho ]; then php ./maho queue:work --exclusive || true; fi; '
+                    . 'sleep 5; '
+                    . 'done',
+            ],
+            'openmage' => [
+                'scheduler' => 'while true; do '
+                    . 'if [ -f ./cron.php ]; then php ./cron.php || true; fi; '
+                    . 'sleep 60; '
+                    . 'done',
+            ],
+            default => [
+                'scheduler' => 'while true; do '
+                    . 'if [ -f ./bin/magento ]; then php bin/magento cron:run || true; fi; '
+                    . 'sleep 60; '
+                    . 'done',
+                'queue' => 'while true; do '
+                    . 'if [ -f ./bin/magento ]; then '
+                    . 'for consumer in $(php bin/magento queue:consumers:list 2>/dev/null); do '
+                    . 'php bin/magento queue:consumers:start "$consumer" --max-messages=10000 & '
+                    . 'done; wait; '
+                    . 'fi; '
+                    . 'sleep 60; '
+                    . 'done',
+            ],
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $compose
+     * @param  list<string>  $services
+     */
+    protected function ensureSchedulerServices(array &$compose, string $appService, array $services): void
+    {
+        foreach ($this->schedulerProcesses() as $name => $script) {
+            $service = $compose['services'][$name] ?? null;
+
+            if (! is_array($service)) {
+                $service = $compose['services'][$appService];
+                unset($service['ports']);
+            }
+
+            $dependsOn = $service['depends_on'] ?? [];
+            $service['depends_on'] = array_values(array_unique(array_merge(
+                is_array($dependsOn) ? $dependsOn : [],
+                $services,
+            )));
+
+            $service['command'] = ['bash', '-c', $script];
+            $service['restart'] = 'unless-stopped';
+
+            $this->setServiceEnvironment($service, 'CORSAIR_PLATFORM', $this->platform());
+
+            $compose['services'][$name] = $service;
+        }
     }
 
     /**
