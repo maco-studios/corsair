@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/**
+ * Copyright (c) 2026 Marcos "Marcão" Aurelio
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ *
+ * @see https://github.com/maco-studios/corsair
+ */
+
 namespace Corsair\Console;
 
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,7 +42,7 @@ final class Banner
 
     public static function render(): string
     {
-    $lines = [];
+        $lines = [];
 
         foreach (self::ROWS as $row) {
             $line = '';
