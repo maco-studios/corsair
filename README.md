@@ -12,6 +12,8 @@
 
 <p align="center"><strong>Docker-powered local dev for Magento 1, Magento 2, OpenMage, Mage-OS, and MahoCommerce.</strong></p>
 
+> **🚧 Under construction.** Corsair is early (pre-1.0) and still changing fast. Expect rough edges and breaking changes between releases — pin a version in `composer.json` rather than tracking `main`, and report anything broken via [issues](https://github.com/maco-studios/corsair/issues).
+
 Corsair is [Laravel Sail](https://github.com/laravel/sail) for the Magento ecosystem: Docker, Docker Compose, and Bash, so you don't install PHP, MySQL, Redis, or search engines on your machine for every project. Each project gets its own isolated, reproducible environment, matched to whatever PHP, database, and services it actually needs.
 
 ## Quickstart
