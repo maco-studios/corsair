@@ -32,8 +32,8 @@ it('ships the same maho nginx and entrypoint for every php runtime', function ()
     expect($entrypoint)
         ->toContain('CORSAIR_PLATFORM:-magento')
         ->toContain('nginx-maho.conf')
-        ->toContain('cron:run default')
-        ->toContain('cron:run always');
+        ->not->toContain('cron:run')
+        ->not->toContain('queue:work');
 
     foreach ($versions as $version) {
         $runtime = $root . '/resources/runtimes/' . $version;

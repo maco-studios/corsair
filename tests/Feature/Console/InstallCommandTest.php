@@ -49,8 +49,16 @@ it('installs compose services and env defaults non-interactively', function (): 
 
     $compose = Yaml::parseFile($this->project . '/compose.yaml');
 
-    expect($compose['services'])->toHaveKeys(['magento.test', 'mysql', 'redis', 'opensearch'])
+    expect($compose['services'])->toHaveKeys(['magento.test', 'scheduler', 'queue', 'mysql', 'redis', 'opensearch'])
         ->and($compose['services']['magento.test']['depends_on'])->toContain('mysql', 'redis', 'opensearch')
+        ->and($compose['services']['scheduler']['depends_on'])->toContain('mysql', 'redis', 'opensearch')
+        ->and($compose['services']['scheduler']['environment']['CORSAIR_PLATFORM'])->toBe('magento')
+        ->and($compose['services']['scheduler']['build'])->toBe($compose['services']['magento.test']['build'])
+        ->and($compose['services']['scheduler'])->not->toHaveKey('ports')
+        ->and($compose['services']['scheduler']['command'][2])->toContain('bin/magento cron:run')
+        ->and($compose['services']['scheduler']['restart'])->toBe('unless-stopped')
+        ->and($compose['services']['queue']['command'][2])->toContain('queue:consumers:start')
+        ->and($compose['services']['queue'])->not->toHaveKey('ports')
         ->and($compose['volumes'])->toHaveKeys(['corsair-mysql', 'corsair-redis', 'corsair-opensearch'])
         ->and($compose['services']['mysql']['volumes'])->toContain(
             './vendor/maco-studios/corsair/resources/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh',
@@ -78,12 +86,14 @@ it('installs a maho stack on php 8.5', function (): void {
 
     $compose = Yaml::parseFile($this->project . '/compose.yaml');
 
-    expect($compose['services'])->toHaveKeys(['maho.test', 'mysql', 'redis'])
+    expect($compose['services'])->toHaveKeys(['maho.test', 'scheduler', 'queue', 'mysql', 'redis'])
         ->and($compose['services'])->not->toHaveKey('opensearch')
         ->and($compose['services'])->not->toHaveKey('magento.test')
         ->and($compose['services']['maho.test']['depends_on'])->toContain('mysql', 'redis')
         ->and($compose['services']['maho.test']['environment']['CORSAIR_PLATFORM'])->toBe('maho')
         ->and($compose['services']['maho.test']['build']['context'])->toContain('/8.5')
+        ->and($compose['services']['scheduler']['command'][2])->toContain('cron:run default')
+        ->and($compose['services']['queue']['command'][2])->toContain('queue:work --exclusive')
         ->and($compose['services']['mysql']['image'])->toBe('mysql:8.4')
         ->and($compose['services']['redis']['command'])->toContain('volatile-lfu');
 
@@ -169,12 +179,14 @@ it('installs an openmage stack', function (): void {
 
     $compose = Yaml::parseFile($this->project . '/compose.yaml');
 
-    expect($compose['services'])->toHaveKeys(['openmage.test', 'mysql', 'redis'])
+    expect($compose['services'])->toHaveKeys(['openmage.test', 'scheduler', 'mysql', 'redis'])
         ->and($compose['services'])->not->toHaveKey('opensearch')
         ->and($compose['services'])->not->toHaveKey('magento.test')
+        ->and($compose['services'])->not->toHaveKey('queue')
         ->and($compose['services']['openmage.test']['depends_on'])->toContain('mysql', 'redis')
         ->and($compose['services']['openmage.test']['environment']['CORSAIR_PLATFORM'])->toBe('openmage')
-        ->and($compose['services']['openmage.test']['build']['context'])->toContain('/8.3');
+        ->and($compose['services']['openmage.test']['build']['context'])->toContain('/8.3')
+        ->and($compose['services']['scheduler']['command'][2])->toContain('cron.php');
 
     $env = file_get_contents($this->project . '/.env');
 

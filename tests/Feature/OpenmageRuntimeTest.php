@@ -28,7 +28,7 @@ it('ships the same openmage nginx and entrypoint for every php runtime', functio
     expect($entrypoint)
         ->toContain('CORSAIR_PLATFORM:-magento')
         ->toContain('nginx-openmage.conf')
-        ->toContain('cron.php');
+        ->not->toContain('cron.php');
 
     foreach ($versions as $version) {
         $runtime = $root . '/resources/runtimes/' . $version;
