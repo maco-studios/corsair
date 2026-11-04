@@ -1,5 +1,25 @@
 # Changelog
 
+<a name="0.0.5"></a>
+## 0.0.5 (2026-11-04)
+
+### Added
+
+- ✨ feat(console): group corsair commands apart from built-ins [[2003039](https://github.com/maco-studios/corsair/commit/200303977a89f468147e3ee0daf044e136e1a308)]
+- ✨ feat(console): render a colorized ASCII banner [[cb40e6b](https://github.com/maco-studios/corsair/commit/cb40e6bda73a4181ffe4e9e46daf053db5777bc9)]
+- ✨ feat(console): hide maho/magento unless relevant [[b1290b2](https://github.com/maco-studios/corsair/commit/b1290b2e68f37041740fc666fe403e347986ca8a)]
+
+### Breaking changes
+
+- 💥 feat(console): stop installing platform applications [[0cff400](https://github.com/maco-studios/corsair/commit/0cff4002757410a0356782103df7345e0b6d9e14)]
+- 💥 feat(console): drop the redundant corsair: command prefix [[f5df1d7](https://github.com/maco-studios/corsair/commit/f5df1d76db128e78eb452062c54a0d5ca24bd071)]
+
+### Miscellaneous
+
+- 📊 chore(ci): update coverage badge [[30e90ce](https://github.com/maco-studios/corsair/commit/30e90cee56dde451604c4f7e6e41c24397a12cf7)]
+- 🔨 chore: add lint, rector, and normalize scripts [[569cdba](https://github.com/maco-studios/corsair/commit/569cdba5b22931d968e13a7841e47f90c1ff90e4)]
+
+
 <a name="0.0.4"></a>
 ## 0.0.4 (2026-11-04)
 
