@@ -24,7 +24,7 @@ it('ships the same maho nginx and entrypoint for every php runtime', function ()
         ->toContain('/rest.php$is_args$args')
         ->toContain('/api.php?type=rest')
         ->toContain('location ~ ^/media/(customer|customer_address|downloadable|custom_options)/')
-        ->toContain('location ~ ^/media/.+/cache/[0-9a-f]{12}/[0-9]+/')
+        ->toContain('location ~ "^/media/.+/cache/[0-9a-f]{12}/[0-9]+/"')
         ->toContain('fastcgi_param HTTP_AUTHORIZATION $http_authorization;')
         ->toContain('fastcgi_pass fastcgi_backend;')
         ->not->toContain('\.md');
