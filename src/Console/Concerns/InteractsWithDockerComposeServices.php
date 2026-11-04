@@ -586,12 +586,37 @@ ENV;
      */
     protected function dockerComposeExec(array $arguments, ?string $service = null, bool $disableTty = false): string
     {
+        // `docker compose exec` defaults to root — the Dockerfile has no
+        // USER directive, since the entrypoint itself drops privileges for
+        // the long-running processes (nginx/php-fpm/the scheduler loop) via
+        // gosu. Without --user here, every ad-hoc command (shell, npm,
+        // composer, maho, magento) would run as root while php-fpm serves
+        // requests as WWWUSER, so anything either side writes (e.g.
+        // Magento's lazily-generated DI interceptors under generated/code)
+        // ends up owned by whichever ran first, blocking the other. Only
+        // do this for the application container itself ($service === null)
+        // — mysql/mariadb/redis have their own images' users and no
+        // WWWUSER concept.
+        $userFlag = $service === null ? '--user ' . escapeshellarg($this->containerUser()) . ' ' : '';
+
         return sprintf(
-            'docker compose exec %s%s %s',
+            'docker compose exec %s%s%s %s',
+            $userFlag,
             $disableTty ? '-T ' : '',
             escapeshellarg($service ?? $this->applicationServiceName()),
             implode(' ', array_map('escapeshellarg', $arguments)),
         );
+    }
+
+    /**
+     * The uid:gid the application container's web server runs as, so ad-hoc
+     * commands exec'd into it don't create root-owned files alongside it.
+     */
+    protected function containerUser(): string
+    {
+        $env = $this->envVariables();
+
+        return ($env['WWWUSER'] ?? '1000') . ':' . ($env['WWWGROUP'] ?? '1000');
     }
 
     /**
