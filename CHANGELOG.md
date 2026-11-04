@@ -1,5 +1,21 @@
 # Changelog
 
+<a name="0.0.3"></a>
+## 0.0.3 (2026-11-04)
+
+### Added
+
+- ✨ feat(console): auto-detect the required php version [[fe18acc](https://github.com/maco-studios/corsair/commit/fe18acc4b462f4b957c858fbda455f66391fdea1)]
+
+### Changed
+
+- ⬆️ build(deps): add composer/semver for version matching [[1c6a104](https://github.com/maco-studios/corsair/commit/1c6a1046b1b8547d73f870666476d30ece3b9948)]
+
+### Miscellaneous
+
+- 📊 chore(ci): update coverage badge [[ef23ec3](https://github.com/maco-studios/corsair/commit/ef23ec39533b1a0f78181f607977373c0bddde0c)]
+
+
 <a name="0.0.2"></a>
 ## 0.0.2 (2026-11-04)
 

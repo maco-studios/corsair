@@ -2,6 +2,6 @@
   "project": {
     "name": "corsair",
     "description": "Corsair is [Laravel Sail](https://github.com/laravel/sail) for the Magento ecosystem: Docker, Docker Compose, and Bash, so you don't install PHP, MySQL, Redis, or search engines on your machine for ev",
-    "version": "0.0.2"
+    "version": "0.0.3"
   }
 }
