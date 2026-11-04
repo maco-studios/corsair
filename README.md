@@ -8,12 +8,6 @@
   <a href="LICENSE"><img src=".github/assets/img/badges/license-mit.svg" alt="MIT License"></a>
   <a href="https://github.com/maco-studios/corsair/actions/workflows/tests.yml"><img src=".github/assets/img/badges/coverage.svg" alt="Test coverage"></a>
   <a href="https://packagist.org/packages/maco-studios/corsair"><img src="https://img.shields.io/packagist/v/maco-studios/corsair" alt="Packagist version"></a>
-  <a href="https://packagist.org/packages/maco-studios/corsair"><img src="https://img.shields.io/packagist/dt/maco-studios/corsair" alt="Packagist downloads"></a>
-  <img src=".github/assets/img/badges/platform-magento.svg" alt="Magento 1 and 2">
-  <img src=".github/assets/img/badges/platform-openmage.svg" alt="OpenMage">
-  <img src=".github/assets/img/badges/platform-mageos.svg" alt="Mage-OS">
-  <img src=".github/assets/img/badges/platform-maho.svg" alt="MahoCommerce">
-  <a href="https://buymeacoffee.com/macosauresx"><img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee"></a>
 </p>
 
 <p align="center"><strong>Docker-powered local dev for Magento 1, Magento 2, OpenMage, Mage-OS, and MahoCommerce.</strong></p>
