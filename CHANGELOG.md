@@ -1,5 +1,15 @@
 # Changelog
 
+<a name="0.0.6"></a>
+## 0.0.6 (2026-11-04)
+
+### Changed
+
+- ♻️ refactor: apply rector&#x27;s automated code-quality fixes [[e1d7851](https://github.com/maco-studios/corsair/commit/e1d785128610ee1fd15ada0f9a3e10118680692a)]
+- 🎨 style(console): reformat Banner per php-cs-fixer [[bb56e49](https://github.com/maco-studios/corsair/commit/bb56e492197f2bf44351fe5fdf63a44922e8c44f)]
+- 🔧 chore: normalize composer.json script ordering [[4860ec6](https://github.com/maco-studios/corsair/commit/4860ec63e8e6e1105073d1e57888ebde85d32a61)]
+
+
 <a name="0.0.5"></a>
 ## 0.0.5 (2026-11-04)
 
