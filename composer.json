@@ -1,14 +1,30 @@
 {
     "name": "maco-studios/corsair",
-    "description": "Docker files for running a Magento or MahoCommerce application",
+    "description": "Docker-powered local dev environment for Magento 1, Magento 2, OpenMage, Mage-OS, and MahoCommerce.",
     "license": "MIT",
     "type": "library",
+    "keywords": [
+        "magento",
+        "magento2",
+        "openmage",
+        "mage-os",
+        "maho",
+        "mahocommerce",
+        "docker",
+        "sail",
+        "dev-environment"
+    ],
     "authors": [
         {
             "name": "Marcos \"Marcão\" Aurelio",
             "email": "macosaures@gmail.com"
         }
     ],
+    "homepage": "https://github.com/maco-studios/corsair",
+    "support": {
+        "issues": "https://github.com/maco-studios/corsair/issues",
+        "source": "https://github.com/maco-studios/corsair"
+    },
     "require": {
         "php": "^8.2",
         "symfony/console": "^5.4 || ^6.0 || ^7.0 || ^8.0",
