@@ -1,5 +1,17 @@
 # Changelog
 
+<a name="0.0.7"></a>
+## 0.0.7 (2026-11-04)
+
+### Changed
+
+- 🎨 style(tests): restore fixer spacing [[16ec48f](https://github.com/maco-studios/corsair/commit/16ec48f0dc28039fbe31d14fd225745ef5cdf663)]
+
+### Fixed
+
+- 🐛 fix(tests): match WWWUSER/WWWGROUP to the host uid in e2e tests [[384b695](https://github.com/maco-studios/corsair/commit/384b6955a1be4bfae4939dee1f220beb289d725b)]
+
+
 <a name="0.0.6"></a>
 ## 0.0.6 (2026-11-04)
 
