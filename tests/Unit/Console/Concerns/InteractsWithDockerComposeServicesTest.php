@@ -239,6 +239,84 @@ it('lets an explicit --php option override the composer.json-detected version', 
     expect($command->callPhpVersion())->toBe('8.1');
 });
 
+it('narrows the detected php version using a dependency locked in composer.lock', function (): void {
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['php' => '^8.1'],
+    ]));
+    file_put_contents($this->project . '/composer.lock', json_encode([
+        'packages' => [
+            ['name' => 'some/legacy-lib', 'require' => ['php' => '~8.1.0']],
+        ],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+
+    // Root alone allows up to 8.5 (the newest we support), but the locked
+    // dependency can only run on 8.1.x, so the effective pick narrows to it.
+    expect($command->callPhpVersion())->toBe('8.1');
+});
+
+it('also narrows the detected php version using a dev dependency locked in composer.lock', function (): void {
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['php' => '^8.1'],
+    ]));
+    file_put_contents($this->project . '/composer.lock', json_encode([
+        'packages-dev' => [
+            ['name' => 'some/dev-only-tool', 'require' => ['php' => '~8.2.0']],
+        ],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+
+    expect($command->callPhpVersion())->toBe('8.2');
+});
+
+it('detects the php version from composer.lock alone when composer.json has no constraint', function (): void {
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['magento/project-community-edition' => '*'],
+    ]));
+    file_put_contents($this->project . '/composer.lock', json_encode([
+        'packages' => [
+            ['name' => 'some/lib', 'require' => ['php' => '>=8.4.0']],
+        ],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+
+    expect($command->callPhpVersion())->toBe('8.5');
+});
+
+it('skips a locked package with an unparseable php constraint instead of failing', function (): void {
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['php' => '>=8.4.0'],
+    ]));
+    file_put_contents($this->project . '/composer.lock', json_encode([
+        'packages' => [
+            ['name' => 'some/weird-lib', 'require' => ['php' => 'not-a-constraint']],
+        ],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+
+    expect($command->callPhpVersion())->toBe('8.5');
+});
+
+it('lets config.platform.php win outright even when composer.lock would narrow further', function (): void {
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['php' => '^8.1'],
+        'config' => ['platform' => ['php' => '8.4.0']],
+    ]));
+    file_put_contents($this->project . '/composer.lock', json_encode([
+        'packages' => [
+            ['name' => 'some/legacy-lib', 'require' => ['php' => '~8.1.0']],
+        ],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+
+    expect($command->callPhpVersion())->toBe('8.4');
+});
+
 dataset('application service names per platform', [
     'magento' => ['magento', 'magento.test'],
     'maho' => ['maho', 'maho.test'],

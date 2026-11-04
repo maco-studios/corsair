@@ -447,48 +447,121 @@ ENV;
             }
         }
 
-        return $this->phpVersionFromComposerJson()
+        return $this->phpVersionFromComposer()
             ?? ($this->platform() === 'maho' ? '8.5' : '8.3');
     }
 
     /**
-     * The newest supported runtime that satisfies the project's own PHP
-     * constraint — `config.platform.php` (an explicit override) if set,
-     * otherwise `require.php`. Returns null when composer.json has no PHP
-     * constraint, or when none of our runtimes satisfy it (the caller falls
-     * back to the platform default either way).
+     * The newest supported runtime that satisfies the project's effective
+     * PHP requirement. `config.platform.php` (an explicit override) wins
+     * outright, matching how Composer itself treats it — it replaces
+     * detection rather than narrowing it further. Otherwise, every PHP
+     * constraint has to be satisfied at once: the root `require.php` *and*
+     * every package locked in composer.lock that declares its own `php`
+     * requirement, since that combined set is exactly what Composer
+     * aggregates into the `vendor/composer/platform_check.php` it runs on
+     * every request — the thing that actually produced the "Composer
+     * detected issues in your platform" error this method exists to avoid.
+     * A root constraint alone can under-report it: a project's own
+     * composer.json can allow a wide range while a dependency it locked
+     * narrows that down behind the scenes.
+     *
+     * Returns null when neither file has a usable PHP constraint, or when
+     * none of our runtimes satisfy the combined set — the caller falls back
+     * to the platform default either way.
      */
-    protected function phpVersionFromComposerJson(): ?string
+    protected function phpVersionFromComposer(): ?string
     {
-        $composerPath = $this->basePath('composer.json');
-
-        if (! file_exists($composerPath)) {
-            return null;
-        }
-
-        $composer = json_decode((string) file_get_contents($composerPath), true);
-
-        if (! is_array($composer)) {
-            return null;
-        }
+        $composer = $this->readJsonFile('composer.json');
 
         $config = is_array($composer['config'] ?? null) ? $composer['config'] : [];
         $platform = is_array($config['platform'] ?? null) ? $config['platform'] : [];
+        $override = $platform['php'] ?? null;
+
+        if (is_string($override) && trim($override) !== '') {
+            return $this->newestSatisfying([$override]);
+        }
+
         $require = is_array($composer['require'] ?? null) ? $composer['require'] : [];
+        $constraints = [];
 
-        $constraint = $platform['php'] ?? $require['php'] ?? null;
+        if (is_string($require['php'] ?? null) && trim($require['php']) !== '') {
+            $constraints[] = $require['php'];
+        }
 
-        if (! is_string($constraint) || trim($constraint) === '') {
+        $lock = $this->readJsonFile('composer.lock');
+        $packages = array_merge(
+            is_array($lock['packages'] ?? null) ? $lock['packages'] : [],
+            is_array($lock['packages-dev'] ?? null) ? $lock['packages-dev'] : [],
+        );
+
+        foreach ($packages as $package) {
+            if (! is_array($package)) {
+                continue;
+            }
+
+            $packageRequire = is_array($package['require'] ?? null) ? $package['require'] : [];
+            $packageConstraint = $packageRequire['php'] ?? null;
+
+            if (is_string($packageConstraint) && trim($packageConstraint) !== '') {
+                $constraints[] = $packageConstraint;
+            }
+        }
+
+        if ($constraints === []) {
             return null;
         }
 
+        return $this->newestSatisfying($constraints);
+    }
+
+    /**
+     * The newest of our supported runtimes that satisfies every given
+     * constraint simultaneously, or null if none do. A constraint Semver
+     * can't parse is skipped rather than failing the whole lookup — package
+     * metadata out in the wild occasionally has a malformed `php` entry.
+     *
+     * @param  list<string>  $constraints
+     */
+    protected function newestSatisfying(array $constraints): ?string
+    {
         foreach (array_reverse($this->phpVersions) as $version) {
-            if (Semver::satisfies($version . '.0', $constraint)) {
+            $satisfiesAll = true;
+
+            foreach ($constraints as $constraint) {
+                try {
+                    if (! Semver::satisfies($version . '.0', $constraint)) {
+                        $satisfiesAll = false;
+
+                        break;
+                    }
+                } catch (\UnexpectedValueException) {
+                    continue;
+                }
+            }
+
+            if ($satisfiesAll) {
                 return $version;
             }
         }
 
         return null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function readJsonFile(string $filename): array
+    {
+        $path = $this->basePath($filename);
+
+        if (! file_exists($path)) {
+            return [];
+        }
+
+        $contents = json_decode((string) file_get_contents($path), true);
+
+        return is_array($contents) ? $contents : [];
     }
 
     protected function applicationServiceName(): string
