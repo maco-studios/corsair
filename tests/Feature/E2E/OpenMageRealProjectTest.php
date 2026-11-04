@@ -112,6 +112,12 @@ it('scaffolds, installs, and boots a real OpenMage project through corsair', fun
 
     $env = (string) file_get_contents($this->project . '/.env');
     $env = (string) preg_replace('/^APP_PORT=.*/m', 'APP_PORT=' . $appPort, $env);
+    // The app container chowns the bind-mounted project directory to
+    // WWWUSER:WWWGROUP on boot (see start-container), which defaults to
+    // 1000:1000 — matching this to the actual runner avoids leaving the
+    // directory unwritable from the host side afterward.
+    $env = (string) preg_replace('/^WWWUSER=.*/m', 'WWWUSER=' . posix_getuid(), $env);
+    $env = (string) preg_replace('/^WWWGROUP=.*/m', 'WWWGROUP=' . posix_getgid(), $env);
     file_put_contents($this->project . '/.env', $env);
 
     $up = new Process([PHP_BINARY, $binary, 'up', '-d'], $this->project);

@@ -71,6 +71,12 @@ it('installs, boots, and tears down a real magento docker stack', function (): v
 
     $env = (string) file_get_contents($this->project . '/.env');
     $env = (string) preg_replace('/^APP_PORT=.*/m', 'APP_PORT=' . $appPort, $env);
+    // The app container chowns the bind-mounted project directory to
+    // WWWUSER:WWWGROUP on boot (see start-container), which defaults to
+    // 1000:1000 — matching this to the actual runner matters here, since
+    // db:dump below writes to this same directory from the host side.
+    $env = (string) preg_replace('/^WWWUSER=.*/m', 'WWWUSER=' . posix_getuid(), $env);
+    $env = (string) preg_replace('/^WWWGROUP=.*/m', 'WWWGROUP=' . posix_getgid(), $env);
     $env .= PHP_EOL . 'FORWARD_DB_PORT=' . random_int(30000, 39999) . PHP_EOL . 'FORWARD_REDIS_PORT=' . random_int(40000, 49999) . PHP_EOL;
     file_put_contents($this->project . '/.env', $env);
 
