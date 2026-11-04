@@ -178,6 +178,67 @@ it('lets an explicit --php option override the platform default', function (): v
     expect($command->callPhpVersion())->toBe('8.2');
 });
 
+it('detects the required php version from composer.json require.php', function (): void {
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['php' => '>=8.5.0'],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+
+    expect($command->callPhpVersion())->toBe('8.5');
+});
+
+it('prefers config.platform.php over require.php when detecting the php version', function (): void {
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['php' => '>=8.5.0'],
+        'config' => ['platform' => ['php' => '8.2.0']],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+
+    expect($command->callPhpVersion())->toBe('8.2');
+});
+
+it('picks the newest supported runtime satisfying an upper-bounded php constraint', function (): void {
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['php' => '~8.1.0 || ~8.2.0'],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+
+    expect($command->callPhpVersion())->toBe('8.2');
+});
+
+it('falls back to the platform default when no supported runtime satisfies the php constraint', function (): void {
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['php' => '>=9.0.0'],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+
+    expect($command->callPhpVersion())->toBe('8.3');
+});
+
+it('falls back to the platform default when composer.json has no php constraint', function (): void {
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['magento/project-community-edition' => '*'],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento']);
+
+    expect($command->callPhpVersion())->toBe('8.3');
+});
+
+it('lets an explicit --php option override the composer.json-detected version', function (): void {
+    file_put_contents($this->project . '/composer.json', json_encode([
+        'require' => ['php' => '>=8.5.0'],
+    ]));
+
+    $command = composeCommand($this->project)->withInput(['--platform' => 'magento', '--php' => '8.1']);
+
+    expect($command->callPhpVersion())->toBe('8.1');
+});
+
 dataset('application service names per platform', [
     'magento' => ['magento', 'magento.test'],
     'maho' => ['maho', 'maho.test'],

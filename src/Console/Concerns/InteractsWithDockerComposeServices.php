@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Corsair\Console\Concerns;
 
+use Composer\Semver\Semver;
 use Corsair\Prompts\Prompts;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
@@ -446,7 +447,48 @@ ENV;
             }
         }
 
-        return $this->platform() === 'maho' ? '8.5' : '8.3';
+        return $this->phpVersionFromComposerJson()
+            ?? ($this->platform() === 'maho' ? '8.5' : '8.3');
+    }
+
+    /**
+     * The newest supported runtime that satisfies the project's own PHP
+     * constraint — `config.platform.php` (an explicit override) if set,
+     * otherwise `require.php`. Returns null when composer.json has no PHP
+     * constraint, or when none of our runtimes satisfy it (the caller falls
+     * back to the platform default either way).
+     */
+    protected function phpVersionFromComposerJson(): ?string
+    {
+        $composerPath = $this->basePath('composer.json');
+
+        if (! file_exists($composerPath)) {
+            return null;
+        }
+
+        $composer = json_decode((string) file_get_contents($composerPath), true);
+
+        if (! is_array($composer)) {
+            return null;
+        }
+
+        $config = is_array($composer['config'] ?? null) ? $composer['config'] : [];
+        $platform = is_array($config['platform'] ?? null) ? $config['platform'] : [];
+        $require = is_array($composer['require'] ?? null) ? $composer['require'] : [];
+
+        $constraint = $platform['php'] ?? $require['php'] ?? null;
+
+        if (! is_string($constraint) || trim($constraint) === '') {
+            return null;
+        }
+
+        foreach (array_reverse($this->phpVersions) as $version) {
+            if (Semver::satisfies($version . '.0', $constraint)) {
+                return $version;
+            }
+        }
+
+        return null;
     }
 
     protected function applicationServiceName(): string

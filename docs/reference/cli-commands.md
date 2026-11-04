@@ -91,7 +91,7 @@ vendor/bin/corsair corsair:install [--with=<services>] [--platform=<platform>] [
 | --- | --- | --- | --- |
 | `--with` | comma-separated list from [Services](services.md), or `none` | interactive prompt, or `mysql,redis,opensearch` (`mysql,redis` for `maho`/`openmage`) when the terminal isn't interactive | Services added to `compose.yaml` and wired into `.env` |
 | `--platform` | `magento`, `maho`, `openmage`, `mageos` | detected from `composer.json`, then from an existing `compose.yaml`, then an interactive prompt, then `magento` | See [Platform detection](../explanation/platform-detection.md) |
-| `--php` | `8.0`–`8.5` | `8.5` for `maho`, `8.3` otherwise | PHP runtime image used for the app, scheduler, and queue containers |
+| `--php` | `8.0`–`8.5` | detected from `composer.json`, then `8.5` for `maho`, `8.3` otherwise | PHP runtime image used for the app, scheduler, and queue containers. See [PHP version detection](../explanation/php-version-detection.md) |
 | `--devcontainer` | flag | off | Writes `.devcontainer/devcontainer.json` and sets `WWWUSER`/`WWWGROUP` to `1000` in `.env` |
 
 The command fails with a non-zero exit code if `--with` names an unsupported service, `--platform` names an unsupported platform, or `--php` is outside the supported range. It also fails for `maho` with PHP earlier than `8.3`, and for `openmage` with PHP earlier than `8.1`; it warns (without failing) when `maho` is installed with PHP earlier than `8.5`, since Maho 26.11 requires `8.5`.

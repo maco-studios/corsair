@@ -59,7 +59,7 @@ Full docs live in [`docs/`](docs/README.md):
 - **Tutorial** — [getting started](docs/tutorials/getting-started.md)
 - **How-to** — [add a service](docs/how-to/add-a-service.md), [publish and customize Docker files](docs/how-to/publish-docker-files.md), [use a dev container](docs/how-to/use-a-devcontainer.md), [enable Xdebug](docs/how-to/enable-xdebug.md)
 - **Reference** — [CLI commands](docs/reference/cli-commands.md), [services](docs/reference/services.md), [platform matrix](docs/reference/platforms.md), [environment variables](docs/reference/environment-variables.md)
-- **Explanation** — [design principles](docs/explanation/design-principles.md), [platform detection](docs/explanation/platform-detection.md), [scheduler and queue containers](docs/explanation/scheduler-and-queue-containers.md)
+- **Explanation** — [design principles](docs/explanation/design-principles.md), [platform detection](docs/explanation/platform-detection.md), [PHP version detection](docs/explanation/php-version-detection.md), [scheduler and queue containers](docs/explanation/scheduler-and-queue-containers.md)
 
 ## Contributing
 
