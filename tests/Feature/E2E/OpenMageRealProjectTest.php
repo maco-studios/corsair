@@ -57,6 +57,11 @@ beforeEach(function (): void {
         ['config', 'extra.magento-core-package-type', 'magento-source'],
         ['config', 'extra.magento-root-dir', '.'],
         ['config', 'platform.php', '8.3'],
+        // OpenMage 20 currently depends on flowjs/flowjs dev-master. Keep
+        // the fixture permissive enough to resolve that transitive package,
+        // while still preferring stable releases everywhere else.
+        ['config', 'minimum-stability', 'dev'],
+        ['config', 'prefer-stable', 'true'],
         ['config', '--json', 'extra.patches', json_encode([
             'openmage/magento-lts' => [
                 'Guard getCacheSaveLock/releaseCacheSaveLock with Mage::isInstalled() so install.php does not crash before local.xml exists' => $patch,
