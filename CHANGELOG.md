@@ -1,5 +1,14 @@
 # Changelog
 
+<a name="0.0.2"></a>
+## 0.0.2 (2026-11-04)
+
+### Added
+
+- ✨ feat(console): switch the services/platform TUI to the vendored prompts and require a database [[4beb6ec](https://github.com/maco-studios/corsair/commit/4beb6ecd6d6793689dd79998575a60e725741f70)]
+- ✨ feat(prompts): vendor select/multiselect from laravel/prompts [[8ca7394](https://github.com/maco-studios/corsair/commit/8ca739495a4ae63772d64c122cda3a0c32379e2d)]
+
+
 <a name="0.0.1"></a>
 ## 0.0.1 (2026-11-04)
 
