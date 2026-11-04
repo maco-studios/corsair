@@ -35,7 +35,7 @@ Like Laravel Sail, Corsair focuses on the developer experience rather than on hi
 | Search | Project-specific integrations | Elasticsearch or OpenSearch, where required by the Magento release | MySQL, included with the database service | Elasticsearch or OpenSearch, where required by the release | MySQL, included with the database service |
 | Tooling | Magento shell scripts, Composer where applicable | Composer and `bin/magento` | Magento 1 shell scripts, Composer where applicable | Composer and `bin/magento` | `./maho`, via `vendor/bin/corsair maho` |
 
-**Compatibility is project-specific.** A Magento version is supported only when its chosen PHP, database, search engine, extensions, and container images are compatible. The table describes supported environment types, not a guarantee that every possible version combination works.
+**Compatibility is project-specific.** A Magento version is supported only when its chosen PHP, database, search engine, extensions, and container images are compatible. See the [platform support matrix](docs/reference/platforms.md) for the full detail behind this table.
 
 ## Requirements
 
@@ -45,152 +45,36 @@ Like Laravel Sail, Corsair focuses on the developer experience rather than on hi
 
 PHP, Composer, MySQL, Redis, and other application dependencies do not need to be installed on the host when their corresponding services are provided by the project's containers.
 
-## Getting Started
-
-Choose the configuration appropriate to your Magento project and review its environment settings, especially the **Magento version, PHP version, exposed ports, database credentials, and mounted source directory**.
-
-From the directory containing the project's Compose configuration, standard Docker commands include:
-
-```bash
-# Start the development environment
-docker compose up -d
-
-# Inspect running services
-docker compose ps
-
-# Follow service logs
-docker compose logs -f
-
-# Stop the environment
-docker compose down
-```
-
-These are standard Docker Compose commands. The exact Corsair setup process, configuration files, service names, and any convenience CLI commands depend on the implementation in this repository.
-
-### Working with Magento 1
-
-Once the PHP service and Magento source mount are configured, you can run Magento 1's maintenance scripts inside the appropriate container. For example:
-
-```bash
-docker compose exec <php-service> php shell/indexer.php reindexall
-```
-
-### Working with OpenMage
-
-[OpenMage](https://github.com/OpenMage/magento-lts) is the actively maintained Magento 1 LTS fork. It requires PHP 8.1 or later. From an OpenMage checkout:
+## Quickstart
 
 ```bash
 composer require maco-studios/corsair --dev
-vendor/bin/corsair corsair:install --platform=openmage
-docker compose up -d
+vendor/bin/corsair corsair:install
+vendor/bin/corsair up -d
 ```
 
-Corsair detects the `openmage` platform automatically from `composer.json` (the `openmage/magento-lts` package) when `--platform` is omitted. The web server uses the project root as the document root, matching OpenMage's classic layout, and only `index.php`, `api.php`, and `cron.php` are executed.
-
-Run OpenMage's shell scripts the same way you would any other command inside the container:
+`corsair:install` detects your platform (Magento, Maho, OpenMage, or Mage-OS) from `composer.json`, writes `compose.yaml` and `.env`, and builds the application image. From there, `vendor/bin/corsair` aliases `docker compose` the same way Laravel Sail does, so you can keep using it for everything else:
 
 ```bash
-docker compose exec openmage.test php shell/indexer.php reindexall
-docker compose exec openmage.test php shell/compiler.php compile
+vendor/bin/corsair ps        # inspect running services
+vendor/bin/corsair logs -f   # follow service logs
+vendor/bin/corsair down      # stop the environment
 ```
 
-The application container runs `./cron.php` every minute, which is what scheduled indexing, email, and other OpenMage cron jobs need. The loop waits until `cron.php` exists.
+(Plain `docker compose ...` commands work exactly the same, if you prefer them.)
 
-### Working with Mage-OS
-
-[Mage-OS](https://github.com/mage-os/mageos-magento2) is a community-maintained, drop-in compatible distribution of Magento 2 Open Source. It uses the same `pub/` document root, `bin/magento` CLI, and PHP/database/search requirements as Magento 2.
-
-```bash
-composer require maco-studios/corsair --dev
-vendor/bin/corsair corsair:install --platform=mageos
-docker compose up -d
-docker compose exec mageos.test php bin/magento setup:install ...
-```
-
-Corsair detects the `mageos` platform automatically from `composer.json` (any `mage-os/*` package) when `--platform` is omitted. Run `bin/magento` commands the same way you would for Magento 2:
-
-```bash
-docker compose exec mageos.test php bin/magento cache:flush
-docker compose exec mageos.test php bin/magento indexer:reindex
-```
-
-### Working with Magento 2
-
-With the correct PHP service and working directory configured:
-
-```bash
-docker compose exec <php-service> php bin/magento cache:flush
-docker compose exec <php-service> php bin/magento indexer:reindex
-docker compose exec <php-service> php bin/magento setup:upgrade
-```
-
-Replace `<php-service>` with the actual PHP service name in your Compose file. Magento commands assume the container's working directory is the Magento application root.
-
-### Working with MahoCommerce
-
-Maho 26.11 requires PHP 8.5 or later. Maho 26.9 is the last release that runs on PHP 8.3 and 8.4. Corsair selects PHP 8.5 unless you pass `--php`. The web server uses `public/` as the document root, and only `index.php`, `rest.php`, and `api.php` are executed.
-
-From an empty directory:
-
-```bash
-composer create-project mahocommerce/maho-starter .
-composer require maco-studios/corsair --dev
-vendor/bin/corsair corsair:install --platform=maho
-docker compose up -d
-vendor/bin/corsair maho:install --sample-data
-```
-
-`maho:install` reads `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` from `.env` and runs `./maho install` inside `maho.test`. It then reindexes and flushes the cache. The default admin user is `admin` / `corsair-password1`.
-
-Run any other Maho command the same way:
-
-```bash
-vendor/bin/corsair maho cache:flush
-vendor/bin/corsair maho index:reindex:all
-vendor/bin/corsair maho cron:list
-```
-
-The application container runs `./maho cron:run default` and `./maho cron:run always` every minute, which is what the message queue and resized images need. The loop waits until `./maho` exists.
-
-The installer leaves cache and sessions on the filesystem. The Redis service already uses `maxmemory-policy volatile-lfu`, which Maho's cache backend requires. To store cache and sessions in Redis, add this inside `<global>` in `app/etc/local.xml`:
-
-```xml
-<cache>
-    <backend>redis</backend>
-    <backend_options>
-        <dsn>redis://redis/0</dsn>
-    </backend_options>
-</cache>
-<session_save>redis</session_save>
-<redis_session>
-    <dsn>redis://redis/1</dsn>
-</redis_session>
-```
-
-Add Mailpit when you want to catch outgoing mail: `vendor/bin/corsair corsair:add mailpit`.
-
-## Design Principles
-
-**One environment per project.** Keep application services, networks, volumes, and configuration isolated so Magento 1, Magento 2, OpenMage, Mage-OS, and Maho projects can coexist.
-
-**Explicit compatibility.** Choose runtime and service versions for the Magento release being developed instead of relying on a universal stack.
-
-**Reproducible onboarding.** Prefer versioned configuration and containerized dependencies over manual workstation setup.
-
-**A familiar workflow.** Use simple shell tooling and standard Docker Compose commands, with direct access to the underlying services when needed.
-
-**Development first.** Local configuration is not a production deployment template. In particular, legacy Magento 1 and end-of-life PHP versions should be isolated and must not be exposed directly to the internet.
+New to Corsair? Follow the [getting-started tutorial](docs/tutorials/getting-started.md) for a full walkthrough, from an empty directory to a logged-in admin. Already have a project? Jump straight to the how-to guide for your platform: [Magento 1](docs/how-to/install-on-magento-1.md), [Magento 2](docs/how-to/install-on-magento-2.md), [OpenMage](docs/how-to/install-on-openmage.md), [Mage-OS](docs/how-to/install-on-mageos.md), or [MahoCommerce](docs/how-to/install-on-maho.md).
 
 ## Documentation
 
-- [Laravel Sail](https://github.com/laravel/sail) — inspiration for the lightweight Docker-based developer experience.
-- [Docker Compose documentation](https://docs.docker.com/compose/) — service lifecycle and container configuration.
-- [Adobe Commerce / Magento documentation](https://experienceleague.adobe.com/en/docs/commerce) — Magento 2 installation and system requirements.
-- [OpenMage documentation](https://openmage.github.io/) — installation, system requirements, and shell scripts.
-- [Mage-OS documentation](https://mage-os.org/) — installation and system requirements for the Magento 2-compatible distribution.
-- [MahoCommerce getting started](https://mahocommerce.com/about/getting-started/) — PHP, database, and `./maho install`.
-- [Maho web server configuration](https://mahocommerce.com/hosting/web-server/) — document root and API routing.
-- [Maho Redis](https://mahocommerce.com/hosting/redis/) — cache and session DSN values.
+Full documentation lives in [`docs/`](docs/README.md), organized as tutorials, how-to guides, reference, and explanation:
+
+- **[Tutorial](docs/tutorials/getting-started.md)** — set up a MahoCommerce store from scratch.
+- **How-to guides** — [install per platform](docs/README.md), [add a service](docs/how-to/add-a-service.md), [publish and customize the Docker files](docs/how-to/publish-docker-files.md), [use a dev container](docs/how-to/use-a-devcontainer.md), [enable Xdebug](docs/how-to/enable-xdebug.md).
+- **Reference** — [CLI commands](docs/reference/cli-commands.md), [services](docs/reference/services.md), [platform support matrix](docs/reference/platforms.md), [environment variables](docs/reference/environment-variables.md).
+- **Explanation** — [design principles](docs/explanation/design-principles.md), [platform detection](docs/explanation/platform-detection.md), [scheduler and queue containers](docs/explanation/scheduler-and-queue-containers.md).
+
+External references: [Laravel Sail](https://github.com/laravel/sail) (inspiration for this project), [Docker Compose documentation](https://docs.docker.com/compose/), [OpenMage documentation](https://openmage.github.io/), [Mage-OS documentation](https://mage-os.org/), [MahoCommerce getting started](https://mahocommerce.com/about/getting-started/).
 
 ## Contributing
 
