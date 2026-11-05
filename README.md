@@ -42,24 +42,18 @@ Plain `docker compose ...` commands work the same, if you prefer them.
 
 ## Platform guides
 
-New to Corsair? Start with the [getting-started tutorial](docs/tutorials/getting-started.md). Already have a project?
+New to Corsair? Start with the [documentation home](docs/index.md) and choose the tutorial for [Adobe Commerce / Magento 2](docs/tutorials/adobe-commerce.md), [Mage-OS](docs/tutorials/mage-os.md), [OpenMage](docs/tutorials/openmage.md), or [MahoCommerce](docs/tutorials/mahocommerce.md).
 
-- [Magento 1](docs/how-to/install-on-magento-1.md)
-- [Magento 2](docs/how-to/install-on-magento-2.md)
-- [OpenMage](docs/how-to/install-on-openmage.md)
-- [Mage-OS](docs/how-to/install-on-mageos.md)
-- [MahoCommerce](docs/how-to/install-on-maho.md)
-
-Support is project-specific — a given Magento version works only with compatible PHP, database, and search engine choices. See the [platform support matrix](docs/reference/platforms.md) for full detail.
+Already have a project? Use the [existing-project guide](docs/how-to/adopt-existing-project.md). Support is project-specific; see the [platform reference](docs/reference/platforms.md) and [compatibility reference](docs/reference/compatibility.md).
 
 ## Documentation
 
-Full docs live in [`docs/`](docs/README.md):
+The documentation is organized for Zensical using the Diátaxis framework. Preview or build it with `zensical serve` and `zensical build`:
 
-- **Tutorial** — [getting started](docs/tutorials/getting-started.md)
-- **How-to** — [add a service](docs/how-to/add-a-service.md), [publish and customize Docker files](docs/how-to/publish-docker-files.md), [use a dev container](docs/how-to/use-a-devcontainer.md), [enable Xdebug](docs/how-to/enable-xdebug.md)
-- **Reference** — [CLI commands](docs/reference/cli-commands.md), [services](docs/reference/services.md), [platform matrix](docs/reference/platforms.md), [environment variables](docs/reference/environment-variables.md)
-- **Explanation** — [design principles](docs/explanation/design-principles.md), [platform detection](docs/explanation/platform-detection.md), [PHP version detection](docs/explanation/php-version-detection.md), [scheduler and queue containers](docs/explanation/scheduler-and-queue-containers.md)
+- **Tutorials** — complete learning paths for each supported platform
+- **How-to guides** — installation, adoption, services, development, customization, Xdebug, Dev Containers, and troubleshooting
+- **Reference** — CLI, platforms, services, environment variables, generated files, and compatibility
+- **Explanation** — architecture, detection, runtime selection, workers, and customization decisions
 
 ## Contributing
 
