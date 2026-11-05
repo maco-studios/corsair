@@ -50,7 +50,10 @@ beforeEach(function (): void {
     // in transitively (see "OpenMage's installer packages ship Composer
     // plugins" below), before requiring openmage/magento-lts so it's in
     // effect for its own install event.
-    $patch = dirname(__DIR__, 3) . '/resources/patches/openmage-install-cache-lock-guard.patch';
+    // vaimo/composer-patches resolves local patch paths relative to the
+    // disposable project, so this must stay project-relative rather than
+    // being passed as an absolute repository path.
+    $patch = '../../../resources/patches/openmage-install-cache-lock-guard.patch';
 
     foreach ([
         ['config', '--json', 'extra.enable-patching', 'true'],
@@ -78,7 +81,10 @@ beforeEach(function (): void {
         ->setTimeout(120)
         ->mustRun();
 
-    (new Process(['composer', 'require', 'openmage/magento-lts:^20.0.0', '--no-interaction'], $this->project))
+    // 20.18.2 is the latest OpenMage 20 release whose bundled Composer
+    // patches are compatible with its dependency graph.  20.19.0 currently
+    // republishes stale ZF1 patches that cannot apply to zf1-future 1.26.
+    (new Process(['composer', 'require', 'openmage/magento-lts:20.18.2', '--no-interaction'], $this->project))
         ->setTimeout(300)
         ->mustRun();
 
@@ -123,6 +129,8 @@ it('scaffolds, installs, and boots a real OpenMage project through corsair', fun
     // directory unwritable from the host side afterward.
     $env = (string) preg_replace('/^WWWUSER=.*/m', 'WWWUSER=' . posix_getuid(), $env);
     $env = (string) preg_replace('/^WWWGROUP=.*/m', 'WWWGROUP=' . posix_getgid(), $env);
+    $env .= PHP_EOL . 'FORWARD_DB_PORT=' . random_int(30000, 39999) . PHP_EOL;
+    $env .= 'FORWARD_REDIS_PORT=' . random_int(40000, 49999) . PHP_EOL;
     file_put_contents($this->project . '/.env', $env);
 
     $up = new Process([PHP_BINARY, $binary, 'up', '-d'], $this->project);
