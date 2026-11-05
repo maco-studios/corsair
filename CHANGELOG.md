@@ -1,5 +1,15 @@
 # Changelog
 
+<a name="0.0.8"></a>
+## 0.0.8 (2026-11-05)
+
+### Fixed
+
+- 🐛 fix(openmage): stabilize real-project install test [[2c5e01b](https://github.com/maco-studios/corsair/commit/2c5e01b9c3e0b02398dd642ba227454548774326)]
+- 🐛 fix(openmage): refresh install cache patch for 20.19 [[8e1c2ae](https://github.com/maco-studios/corsair/commit/8e1c2aebcf7010ad36035645d0accfaa52603ce1)]
+- 🐛 fix(tests): allow OpenMage dev dependency resolution [[b12ef99](https://github.com/maco-studios/corsair/commit/b12ef991482df4b46358aa92102cd1f0e2a733e6)]
+
+
 <a name="0.0.7"></a>
 ## 0.0.7 (2026-11-04)
 
