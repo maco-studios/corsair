@@ -1,23 +1,16 @@
 # Services
 
-The services selectable via `--with` (on `install`) or as the argument to `add`.
-
-| Service | Image | Default forwarded port | `.env` keys Corsair sets |
+| Service | Image | Container port | Persistent volume |
 | --- | --- | --- | --- |
-| `mysql` | `mysql:8.4` | `3306` (`FORWARD_DB_PORT`) | `DB_HOST=mysql`, `DB_PORT=3306`, `DB_USERNAME=corsair`, `DB_PASSWORD=password`, `DB_DATABASE=<platform default>` |
-| `mariadb` | `mariadb:11` (`mariadb:11.8` when `--platform=maho`) | `3306` (`FORWARD_DB_PORT`) | Same keys as `mysql`, with `DB_HOST=mariadb` |
-| `redis` | `redis:alpine` | `6379` (`FORWARD_REDIS_PORT`) | `REDIS_HOST=redis`, `REDIS_PORT=6379` |
-| `elasticsearch` | `docker.elastic.co/elasticsearch/elasticsearch:8.11.4` | `9200` (`FORWARD_ELASTICSEARCH_PORT`) | `ELASTICSEARCH_HOST=elasticsearch`, `ELASTICSEARCH_PORT=9200` |
-| `opensearch` | `opensearchproject/opensearch:2` | `9200` (`FORWARD_OPENSEARCH_PORT`) | `OPENSEARCH_HOST=opensearch`, `OPENSEARCH_PORT=9200` |
-| `rabbitmq` | `rabbitmq:4-management-alpine` | `5672` app / `15672` dashboard | `RABBITMQ_HOST=rabbitmq`, `RABBITMQ_PORT=5672`, `RABBITMQ_USER=corsair`, `RABBITMQ_PASSWORD=password`, `RABBITMQ_VHOST=/` |
-| `mailpit` | `axllent/mailpit:latest` | `1025` SMTP / `8025` dashboard | `MAIL_HOST=mailpit`, `MAIL_PORT=1025` |
-| `varnish` | `varnish:7.5` | `8080` (`FORWARD_VARNISH_PORT`) → container port `80` | `VARNISH_HOST=varnish`, `VARNISH_PORT=80` |
+| `mysql` | `mysql:8.4` | `3306` | yes |
+| `mariadb` | `mariadb:11` (`11.8` for Maho) | `3306` | yes |
+| `redis` | `redis:alpine` | `6379` | yes |
+| `elasticsearch` | ElasticSearch `8.11.4` | `9200` | yes |
+| `opensearch` | OpenSearch `2` | `9200` | yes |
+| `rabbitmq` | RabbitMQ `4-management-alpine` | `5672`, dashboard `15672` | yes |
+| `mailpit` | Mailpit `latest` | `1025`, dashboard `8025` | no |
+| `varnish` | Varnish `7.5` | `80` | no |
 
-Notes:
+Select services with `install --with=...` or add them later with `add ...`. Interactive installation requires a database service; explicit `--with=none` is allowed.
 
-- `mysql` and `mariadb` both create a database named `${DB_DATABASE}` for user `corsair` / password `password`, and both mount a healthcheck and a `create-testing-database.sh` init script.
-- `--with=none` (or the `none` argument to `add`) installs no services at all.
-- The interactive services prompt requires at least `mysql` or `mariadb` to be checked before it can be submitted — the application needs a database to run. This only applies to the interactive prompt; `--with=none`/`none` and explicit `--with`/argument lists bypass it.
-- Any of `mysql`, `mariadb`, `redis`, `elasticsearch`, `opensearch`, and `rabbitmq` get a named Docker volume (`corsair-<service>`) for persistence; `mailpit` and `varnish` do not.
-- Services you add are appended to the app service's `depends_on`, and to the scheduler/queue containers' `depends_on` — see [Scheduler and queue containers](../explanation/scheduler-and-queue-containers.md).
-- Forward ports are overridable per project via the matching `FORWARD_*_PORT` environment variable in `.env`; they are not written there automatically.
+Forwarded host ports are controlled by `FORWARD_*_PORT` variables. See [environment variables](environment-variables.md).
