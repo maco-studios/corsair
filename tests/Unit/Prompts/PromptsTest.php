@@ -84,6 +84,23 @@ it('supports custom fallback implementations and rejects missing fallbacks', fun
     expect($prompt->prompt())->toBe('Fallback fallback');
 });
 
+it('supports custom validation and cancellation callbacks', function (): void {
+    SelectPrompt::validateUsing(fn(SelectPrompt $prompt): ?string => $prompt->value() === 'first' ? 'Use the second option.' : null);
+    SelectPrompt::cancelUsing(fn(): string => 'cancelled by callback');
+    SelectPrompt::fake([Key::ENTER, Key::CTRL_C]);
+
+    $prompt = new SelectPrompt('Callbacks', ['first', 'second']);
+
+    expect($prompt->prompt())->toBe('cancelled by callback');
+
+    SelectPrompt::preventReverting();
+    SelectPrompt::fake([Key::CTRL_U, Key::CTRL_C]);
+    $revertable = new SelectPrompt('Revert', ['first']);
+
+    expect($revertable->prompt())->toBe('cancelled by callback');
+    SelectPrompt::assertStrippedOutputContains('This cannot be reverted.');
+});
+
 it('selects and toggles multiple options in list and associative collections', function (): void {
     MultiSelectPrompt::fake([Key::SPACE, Key::DOWN, Key::SPACE, Key::ENTER]);
     $prompt = new MultiSelectPrompt('Choose services', ['database', 'cache'], hint: 'Toggle services');

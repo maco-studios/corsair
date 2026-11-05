@@ -51,6 +51,11 @@ class CoverageRenderer extends SelectPromptRenderer
         return $this->ansiWordwrap($text, $width);
     }
 
+    public function truncateFor(string $text, int $width): string
+    {
+        return $this->truncate($text, $width);
+    }
+
     public function scrollbarFor(array $visible, int $first, int $height, int $total, int $width): array
     {
         return $this->scrollbar($visible, $first, $height, $total, $width);
@@ -78,6 +83,7 @@ it('covers prompt utility traits and ANSI-aware rendering helpers', function ():
         ->and($renderer->longestFor(['one', 'long'], 2))->toBe(60)
         ->and($renderer->padFor("\e[31mone\e[39m", 5, '.'))->toBe("\e[31mone\e[39m..")
         ->and($renderer->stripFor($colored))->toBe('red green blue')
+        ->and($renderer->truncateFor('abcdef', 4))->toBe('abc…')
         ->and($renderer->wrapFor('short text', 30))->toBe('short text')
         ->and($renderer->wrapFor('abcdefgh', 3, true))->toContain("abc\ndef")
         ->and($renderer->wrapFor('one two three', 7))->toContain("one two\nthree")
@@ -88,6 +94,8 @@ it('covers prompt utility traits and ANSI-aware rendering helpers', function ():
         ->and($renderer->scrollPositionFor(6, 4, 10))->toBe(3)
         ->and($renderer->scrollPositionFor(2, 2, 10))->toBe(-1)
         ->and($renderer->scrollPositionFor(2, 4, 10))->toBe(1);
+
+    expect(fn(): string => $renderer->truncateFor('text', 0))->toThrow(InvalidArgumentException::class);
 });
 
 it('covers colors, cursor, erase, events, output buffers, and key loops', function (): void {
