@@ -2,7 +2,4 @@
 .php-cs-fixer.cache
 /.rector/
 /var/*
-!/var/tmp/
-/var/tmp/*
-!/var/tmp/.gitkeep
 /.env
