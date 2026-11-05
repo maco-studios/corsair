@@ -146,7 +146,7 @@ it('scaffolds, installs, and boots a real OpenMage project through corsair', fun
     ]);
 
     // OpenMage ships its own CLI installer (install.php); Corsair has no
-    // dedicated shortcut for it (see docs/how-to/install-on-openmage.md),
+    // dedicated shortcut for it (see docs/tutorials/openmage.md),
     // so run it the documented way: through the app container's shell.
     $installPhp = implode(' ', array_map(escapeshellarg(...), [
         'php', 'install.php',
@@ -193,7 +193,7 @@ it('scaffolds, installs, and boots a real OpenMage project through corsair', fun
     expect($storefront->isSuccessful())->toBeTrue()
         ->and(strtolower($storefront->getOutput()))->toContain('<html');
 
-    // OpenMage's own maintenance scripts (docs/how-to/install-on-openmage.md)
+    // OpenMage's own maintenance scripts (docs/tutorials/openmage.md)
     // really run post-install, through the same exec path `corsair shell`
     // uses — just non-interactively (-T) since there's no TTY here.
     $reindex = new Process(
