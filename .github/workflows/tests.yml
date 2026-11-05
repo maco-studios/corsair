@@ -4,9 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   unit:
@@ -32,11 +33,41 @@ jobs:
 
       - run: vendor/bin/pest --exclude-group=e2e --coverage --min=0 --coverage-clover=coverage.xml
 
+      - name: Summarize coverage
+        if: success()
+        run: php .github/scripts/coverage-badge.php coverage.xml /tmp/coverage.svg | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ github.run_id }}
+          path: coverage.xml
+          if-no-files-found: ignore
+
+  coverage-badge:
+    name: Update coverage badge
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: unit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-${{ github.run_id }}
+          path: .coverage
+
       - name: Generate coverage badge
-        run: php .github/scripts/coverage-badge.php coverage.xml .github/assets/img/badges/coverage.svg
+        run: php .github/scripts/coverage-badge.php .coverage/coverage.xml .github/assets/img/badges/coverage.svg
 
       - name: Commit coverage badge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: ':bar_chart: chore(ci): update coverage badge'
