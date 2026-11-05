@@ -69,6 +69,15 @@ Bug reports and compatibility improvements are welcome. Include your host OS, Do
 
 If Corsair saves you time, consider [buying me a coffee](https://buymeacoffee.com/macosauresx).
 
+## Credits and attribution
+
+Corsair includes portions adapted from the following MIT-licensed projects:
+
+- [Laravel Sail](https://github.com/laravel/sail) — originally created by Taylor Otwell and Chris Fidao. The testing-database scripts are based on work by Jess Archer, with subsequent contributions from Bram, Tom Coonen, and Hafez Divandari. See the [Sail license](https://github.com/laravel/sail/blob/1.x/LICENSE.md).
+- [docker-magento](https://github.com/markshust/docker-magento) — PHP Xdebug configuration based on the work maintained by Mark Shust and licensed under the copyright of Mage Inferno. See the [docker-magento license](https://github.com/markshust/docker-magento/blob/release/next/LICENSE.md).
+
+The relevant resource files also contain inline attribution notices. Corsair's own code remains available under the [MIT license](LICENSE).
+
 ## License
 
 [MIT](LICENSE)
