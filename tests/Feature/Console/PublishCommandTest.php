@@ -77,3 +77,25 @@ it('refuses to publish without a compose file', function (): void {
 
     removeDirectoryRecursively($empty);
 });
+
+it('handles missing and nested copy sources', function (): void {
+    $command = new PublishCommand();
+    $copyDirectory = new ReflectionMethod($command, 'copyDirectory');
+
+    $missingDestination = temporaryProjectPath('corsair-publish-missing-destination');
+    $copyDirectory->invoke($command, temporaryProjectPath('corsair-publish-missing-source'), $missingDestination);
+
+    expect(is_dir($missingDestination))->toBeFalse();
+
+    $source = temporaryProjectPath('corsair-publish-nested-source');
+    $destination = temporaryProjectPath('corsair-publish-nested-destination');
+    mkdir($source . '/nested', 0755, true);
+    file_put_contents($source . '/nested/file.txt', 'nested');
+
+    $copyDirectory->invoke($command, $source, $destination);
+
+    expect(file_get_contents($destination . '/nested/file.txt'))->toBe('nested');
+
+    removeDirectoryRecursively($source);
+    removeDirectoryRecursively($destination);
+});

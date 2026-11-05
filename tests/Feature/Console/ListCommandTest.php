@@ -11,6 +11,11 @@ declare(strict_types=1);
  * @see https://github.com/maco-studios/corsair
  */
 
+use Corsair\Console\Application;
+use Corsair\Console\AddCommand;
+use Corsair\Console\InstallCommand;
+use Corsair\Console\PublishCommand;
+use Symfony\Component\Console\Tester\ApplicationTester;
 use Symfony\Component\Process\Process;
 
 function runCorsairList(string $project, array $extraArgs = []): string
@@ -70,4 +75,25 @@ it('falls back to the normal ungrouped output for --raw, --format, --short, and 
         ->and($json)->toContain('"application"');
 
     removeDirectoryRecursively($project);
+});
+
+it('covers the grouped and fallback list paths when run in-process', function (): void {
+    $application = new Application('Corsair', '0.1.0');
+    $application->addCommands([
+        new InstallCommand(),
+        new AddCommand(),
+        new PublishCommand(),
+    ]);
+    $application->setAutoExit(false);
+
+    $tester = new ApplicationTester($application);
+    $status = $tester->run(['command' => 'list'], ['decorated' => false]);
+
+    expect($status)->toBe(0)
+        ->and($tester->getDisplay())->toContain(' corsair');
+
+    $status = $tester->run(['command' => 'list', '--raw' => true], ['decorated' => false]);
+
+    expect($status)->toBe(0)
+        ->and($tester->getDisplay())->not->toContain('<comment>');
 });
